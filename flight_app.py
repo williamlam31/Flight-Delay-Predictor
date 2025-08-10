@@ -45,10 +45,10 @@ st.markdown("""
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .info-box {
-    background-color: #000000;
+    background-color: #ffffff;
     padding: 1.5rem;
     border-radius: 10px;
-    border-left: 5px solid #000000;
+    border-left: 5px solid #ffffff;
     margin: 1rem 0;
 
 </style>
