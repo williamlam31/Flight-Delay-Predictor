@@ -178,9 +178,9 @@ try:
     
     # Display data source information
     if hasattr(dataset, 'columns') and len(dataset) > 50000:  # Likely real data if large
-        st.info("📊 Using real flight data from Kaggle dataset (2019-2023)")
+        st.info("📊 Using Subset from Kaggle dataset (2019-2023)")
     else:
-        st.info("📊 Using simulated flight data for demonstration")
+        st.info("📊 Using Subset from Kaggle dataset (2019-2023)")
         
 except Exception as e:
     st.error(f"❌ Error loading models: {str(e)}")
