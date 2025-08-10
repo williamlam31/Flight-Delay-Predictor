@@ -66,11 +66,9 @@ This system predicts flight delays using machine learning models trained on hist
 
 **Features Used:**
 - Scheduled Departure Time
-- Taxi Out Time
+- Scheduled Arrival Time
 - Scheduled Flight Duration
 - Flight Distance
-- Departure Delay
-- Airline Code
 """)
 
 # Load or create models (in practice, you'd load pre-trained models)
@@ -82,11 +80,9 @@ def load_sample_data():
     
     data = {
         'CRS_DEP_TIME': np.random.randint(600, 2200, n_samples),
-        'TAXI_OUT': np.random.normal(15, 5, n_samples),
+        'CRS_ARR_TIME': np.random.randint(800, 2359, n_samples),
         'CRS_ELAPSED_TIME': np.random.normal(150, 50, n_samples),
-        'DISTANCE': np.random.normal(800, 400, n_samples),
-        'DEP_DELAY': np.random.normal(10, 20, n_samples),
-        'AIRLINE_ENCODED': np.random.randint(0, 5, n_samples)
+        'DISTANCE': np.random.normal(800, 400, n_samples)
     }
     
     return pd.DataFrame(data)
@@ -97,19 +93,27 @@ def train_models():
     # Get sample data
     df = load_sample_data()
     
-    # Create target variable based on departure delay
-    def classify_delay(delay):
-        if delay <= 15:
+    # Create target variable based on scheduled times and distance
+    # This is a simplified logic - replace with your actual classification logic
+    def classify_flight_status(row):
+        # Example logic based on your 4 features
+        flight_duration = row['CRS_ELAPSED_TIME']
+        distance = row['DISTANCE']
+        
+        # Calculate expected duration based on distance (rough estimate)
+        expected_duration = distance * 0.15 + 60  # simplified formula
+        
+        if flight_duration <= expected_duration * 0.9:
             return 'On Time'
-        elif delay <= 60:
+        elif flight_duration <= expected_duration * 1.2:
             return 'Short Delay'
         else:
             return 'Long Delay'
     
-    df['FLIGHT_STATUS'] = df['DEP_DELAY'].apply(classify_delay)
+    df['FLIGHT_STATUS'] = df.apply(classify_flight_status, axis=1)
     
-    # Prepare features and target
-    X = df[['CRS_DEP_TIME', 'TAXI_OUT', 'CRS_ELAPSED_TIME', 'DISTANCE', 'DEP_DELAY', 'AIRLINE_ENCODED']]
+    # Prepare features and target - using your 4 features
+    X = df[['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']]
     y = df['FLIGHT_STATUS']
     
     # Scale features
@@ -148,57 +152,40 @@ st.header("🔮 Flight Delay Prediction")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Flight Information")
+    st.subheader("Flight Schedule Information")
     
-    # Input fields
+    # Input fields for your 4 features
     crs_dep_time = st.number_input(
         "Scheduled Departure Time (24hr format)",
         min_value=0, max_value=2359, value=1200,
         help="Enter time in 24-hour format (e.g., 1430 for 2:30 PM)"
     )
     
-    taxi_out = st.slider(
-        "Expected Taxi Out Time (minutes)",
-        min_value=5, max_value=60, value=15
-    )
-    
-    crs_elapsed_time = st.number_input(
-        "Scheduled Flight Duration (minutes)",
-        min_value=30, max_value=600, value=120
+    crs_arr_time = st.number_input(
+        "Scheduled Arrival Time (24hr format)",
+        min_value=0, max_value=2359, value=1500,
+        help="Enter time in 24-hour format (e.g., 1630 for 4:30 PM)"
     )
     
 with col2:
-    st.subheader("Flight Details")
+    st.subheader("Flight Duration & Distance")
+    
+    crs_elapsed_time = st.number_input(
+        "Scheduled Flight Duration (minutes)",
+        min_value=30, max_value=600, value=180
+    )
     
     distance = st.number_input(
         "Flight Distance (miles)",
         min_value=50, max_value=5000, value=800
     )
-    
-    dep_delay = st.slider(
-        "Departure Delay (minutes)",
-        min_value=-30, max_value=300, value=0,
-        help="Negative values indicate early departure"
-    )
-    
-    airline_options = {
-        'American Airlines': 0,
-        'Delta Airlines': 1,
-        'United Airlines': 2,
-        'Southwest Airlines': 3,
-        'JetBlue': 4
-    }
-    
-    airline = st.selectbox("Airline", list(airline_options.keys()))
-    airline_encoded = airline_options[airline]
 
 # Prediction button
 if st.button("🚀 Predict Flight Status", type="primary"):
     try:
-        # Prepare input data
+        # Prepare input data with your 4 features
         input_data = np.array([[
-            crs_dep_time, taxi_out, crs_elapsed_time, 
-            distance, dep_delay, airline_encoded
+            crs_dep_time, crs_arr_time, crs_elapsed_time, distance
         ]])
         
         # Scale input
@@ -351,7 +338,7 @@ with col2:
     # Feature selection for visualization
     feature_to_plot = st.selectbox(
         "Select Feature to Visualize:",
-        ['CRS_DEP_TIME', 'TAXI_OUT', 'CRS_ELAPSED_TIME', 'DISTANCE', 'DEP_DELAY']
+        ['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']
     )
     
     fig = px.histogram(
