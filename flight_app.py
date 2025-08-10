@@ -291,53 +291,6 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
             st.dataframe(results_df, use_container_width=True)
         
 
-        st.markdown("### 📈 Confidence Comparison Across Models")
-        
-
-        confidence_data = []
-        for model_name in model_names:
-            proba = all_probabilities[model_name]
-            classes = models[model_name].classes_
-            for class_name, prob in zip(classes, proba):
-                confidence_data.append({
-                    'Model': model_name,
-                    'Flight_Status': class_name,
-                    'Confidence': prob
-                })
-        
-        confidence_df = pd.DataFrame(confidence_data)
-        fig = px.bar(confidence_df,
-                    x='Model', y='Confidence', color='Flight_Status',
-                    title="Model Confidence Comparison",
-                    barmode='group')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-        
-
-        tree_models = ['Random Forest', 'Decision Tree']
-        available_tree_models = [name for name in tree_models if name in models]
-        
-        if available_tree_models:
-            st.markdown("### 🌳 Feature Importance Comparison")
-            importance_data = []
-            for model_name in available_tree_models:
-                importance = models[model_name].feature_importances_
-                for feature, imp in zip(feature_names, importance):
-                    importance_data.append({
-                        'Model': model_name,
-                        'Feature': feature,
-                        'Importance': imp
-                    })
-            
-            importance_df = pd.DataFrame(importance_data)
-            fig = px.bar(importance_df,
-                        x='Feature', y='Importance', color='Model',
-                        title="Feature Importance by Model",
-                        barmode='group')
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
-        
-
         st.markdown("### 💡 Flight Insights")
         if most_common == 'On Time':
             st.success("✅ **Excellent!** Most models predict your flight will be on time (≤15 min delay). Have a great trip!")
