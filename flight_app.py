@@ -52,7 +52,7 @@ st.markdown("""
     margin: 1rem 0;
 }
 .info-box h3 {
-    color: #ffffff
+    color: #ffffff;
 }
 </style>
 """, unsafe_allow_html=True)
