@@ -170,7 +170,7 @@ def train_models():
         model.fit(X_scaled, y)
         trained_models[name] = model
     
-    return trained_models, scaler, X.columns.tolist()
+    return trained_models, scaler, X.columns.tolist(), df
 
 # Load models
 try:
