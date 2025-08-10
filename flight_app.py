@@ -14,15 +14,15 @@ from sklearn.neighbors import KNeighborsClassifier
 import warnings
 warnings.filterwarnings('ignore')
 
-# Set page configuration
+
 st.set_page_config(
     page_title="Flight Delay Prediction System",
     page_icon="✈️",
     layout="wide",
-    initial_sidebar_state="collapsed"  # Hide sidebar
+    initial_sidebar_state="collapsed" 
 )
 
-# Custom CSS for better styling
+
 st.markdown("""
 <style>
 .main-header {
@@ -32,7 +32,7 @@ st.markdown("""
     margin-bottom: 2rem;
 }
 .prediction-box {
-    background-color: #f0f2f6;
+    background-color: #0d6efd;
     padding: 1rem;
     border-radius: 10px;
     border-left: 5px solid #1f77b4;
@@ -57,10 +57,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# App title
+
 st.markdown('<h1 class="main-header">✈️ Flight Delay Prediction System</h1>', unsafe_allow_html=True)
 
-# App info section (moved from sidebar to main page)
+
 st.markdown("""
 <div class="info-box">
 <h3>📋 About this Application</h3>
@@ -71,12 +71,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Load or create models (in practice, you'd load pre-trained models)
+
 @st.cache_data
 def load_kaggle_data():
     """Load data from Kaggle dataset or use sample data as fallback"""
     try:
-        # Try to load from Kaggle first
+
         import kagglehub
         from kagglehub import KaggleDatasetAdapter
         
@@ -87,17 +87,17 @@ def load_kaggle_data():
                 "flights_sample_3m.csv"
             )
             
-            # Data preprocessing as in your original code
+ 
             df_processed = df.copy()
             
-            # Fill missing values
+  
             features_to_fill = ['CRS_ELAPSED_TIME', 'DEP_TIME', 'DEP_DELAY', 'ARR_TIME', 
                               'ARR_DELAY', 'ELAPSED_TIME', 'AIR_TIME', 'DELAY_DUE_CARRIER', 
                               'DELAY_DUE_WEATHER', 'DELAY_DUE_NAS', 'DELAY_DUE_SECURITY', 
                               'DELAY_DUE_LATE_AIRCRAFT']
             df_processed[features_to_fill] = df_processed[features_to_fill].fillna(0)
             
-            # Drop features with excessive missing values
+  
             features_to_drop = ['TAXI_OUT', 'WHEELS_OFF', 'WHEELS_ON','TAXI_IN', 'CANCELLATION_CODE']
             df_processed.drop(features_to_drop, axis=1, inplace=True)
             
@@ -113,9 +113,9 @@ def load_kaggle_data():
 def load_sample_data():
     """Create sample data for demonstration based on actual flight data patterns"""
     np.random.seed(42)
-    n_samples = 10000  # Match your subset size
+    n_samples = 10000 
     
-    # Create more realistic flight data based on your analysis
+
     data = {
         'CRS_DEP_TIME': np.random.randint(500, 2359, n_samples),  # 5:00 AM to 11:59 PM
         'CRS_ARR_TIME': np.random.randint(600, 2359, n_samples),   # 6:00 AM to 11:59 PM
@@ -129,10 +129,10 @@ def load_sample_data():
 @st.cache_resource
 def train_models():
     """Train models for demonstration (in practice, load pre-trained models)"""
-    # Get sample data
+
     df = load_sample_data()
     
-    # Create target variable using the same logic from your Python file
+
     def classify_flight_status(row):
         if row['CANCELLED'] == 1:
             return 'Cancelled'
@@ -147,15 +147,14 @@ def train_models():
     
     df['FLIGHT_STATUS'] = df.apply(classify_flight_status, axis=1)
     
-    # Prepare features and target
+
     X = df[['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']]
     y = df['FLIGHT_STATUS']
     
-    # Scale features
+
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
-    # Train models with the same configurations from your Python file
     models = {
         'Logistic Regression': LogisticRegression(random_state=42, max_iter=500, solver='liblinear'),
         'Naive Bayes': GaussianNB(),
@@ -172,7 +171,7 @@ def train_models():
     
     return trained_models, scaler, X.columns.tolist(), df
 
-# Load models
+
 try:
     models, scaler, feature_names, dataset = train_models()
     
@@ -186,23 +185,22 @@ except Exception as e:
     st.error(f"❌ Error loading models: {str(e)}")
     st.stop()
 
-# Main content area - Flight Input Section
 st.header("🔮 Flight Delay Prediction")
 
-# Flight input section
+
 col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Flight Schedule Information")
     crs_dep_time = st.number_input(
         "Scheduled Departure Time (24hr format)",
-        min_value=0, max_value=2359, value=1200,
+        min_value=0, max_value=2359, value=0,
         help="Enter time in 24-hour format (e.g., 1430 for 2:30 PM)"
     )
     
     crs_arr_time = st.number_input(
         "Scheduled Arrival Time (24hr format)",
-        min_value=0, max_value=2359, value=1500,
+        min_value=0, max_value=2359, value=0,
         help="Enter time in 24-hour format (e.g., 1630 for 4:30 PM)"
     )
 
@@ -210,29 +208,29 @@ with col2:
     st.subheader("Flight Duration & Distance")
     crs_elapsed_time = st.number_input(
         "Scheduled Flight Duration (minutes)",
-        min_value=30, max_value=600, value=180
+        min_value=30, max_value=600, value=30
     )
     
     distance = st.number_input(
         "Flight Distance (miles)",
-        min_value=50, max_value=5000, value=800
+        min_value=50, max_value=5000, value=50
     )
 
-# Prediction button
+
 if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
-        # Prepare input data
+ 
         input_data = np.array([[
             crs_dep_time, crs_arr_time, crs_elapsed_time, distance
         ]])
         
-        # Scale input
+   
         input_scaled = scaler.transform(input_data)
         
         st.markdown("---")
         st.header("🎯 Predictions from All Models")
         
-        # Get predictions from ALL models
+ 
         all_predictions = {}
         all_probabilities = {}
         for model_name, model in models.items():
@@ -241,7 +239,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
             all_predictions[model_name] = prediction
             all_probabilities[model_name] = prediction_proba
         
-        # Display results in a grid
+
         col1, col2, col3 = st.columns(3)
         model_names = list(models.keys())
         
@@ -263,7 +261,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
                 </div>
                 """, unsafe_allow_html=True)
         
-        # Summary of all predictions
+
         st.markdown("### 📊 Prediction Summary")
         col1, col2 = st.columns(2)
         
@@ -283,7 +281,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
             st.success(f"**Consensus Prediction: {most_common}**")
         
         with col2:
-            # Detailed probability table
+
             st.write("**All Model Predictions:**")
             results_df = pd.DataFrame({
                 'Model': model_names,
@@ -292,10 +290,10 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
             })
             st.dataframe(results_df, use_container_width=True)
         
-        # Confidence visualization for all models
+
         st.markdown("### 📈 Confidence Comparison Across Models")
         
-        # Create confidence comparison chart
+
         confidence_data = []
         for model_name in model_names:
             proba = all_probabilities[model_name]
@@ -315,7 +313,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
         fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
         
-        # Feature importance comparison (for tree-based models)
+
         tree_models = ['Random Forest', 'Decision Tree']
         available_tree_models = [name for name in tree_models if name in models]
         
@@ -339,7 +337,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
             fig.update_layout(height=400)
             st.plotly_chart(fig, use_container_width=True)
         
-        # Insights based on consensus (updated for realistic flight classifications)
+
         st.markdown("### 💡 Flight Insights")
         if most_common == 'On Time':
             st.success("✅ **Excellent!** Most models predict your flight will be on time (≤15 min delay). Have a great trip!")
@@ -352,7 +350,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
         else:
             st.info("❓ **Unknown Status** - Insufficient data for reliable prediction. Check with airline directly.")
         
-        # Model agreement analysis
+
         agreement_score = max(prediction_counts.values()) / len(models)
         if agreement_score >= 0.8:
             st.info(f"🎯 **High Confidence**: {agreement_score:.0%} of models agree on this prediction.")
@@ -364,11 +362,10 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
     except Exception as e:
         st.error(f"Error making prediction: {str(e)}")
 
-# Model Performance Section
 st.markdown("---")
 st.header("📊 Model Performance Comparison")
 
-# Simulated performance metrics based on your actual model results
+
 performance_data = {
     'Model': ['Logistic Regression', 'Naive Bayes', 'Decision Tree', 'Random Forest', 'SVM', 'KNN'],
     'Accuracy': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],  
@@ -382,15 +379,15 @@ df_performance = pd.DataFrame(performance_data)
 col1, col2 = st.columns(2)
 
 with col1:
-    # Performance metrics table
+
     st.subheader("Performance Metrics")
     st.dataframe(df_performance)
     
-    # Best model highlight
+
     best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
 
 with col2:
-    # Performance visualization
+
     st.subheader("Model Comparison")
     fig = go.Figure()
     
