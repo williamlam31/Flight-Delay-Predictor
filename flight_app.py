@@ -45,15 +45,12 @@ st.markdown("""
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .info-box {
-    background-color: #0d6efd;
+    background-color: #ffffff;
     padding: 1.5rem;
     border-radius: 10px;
     border-left: 5px solid #1f77b4;
     margin: 1rem 0;
-}
-.info-box h3 {
-    color: #000000;
-}
+
 </style>
 """, unsafe_allow_html=True)
 
