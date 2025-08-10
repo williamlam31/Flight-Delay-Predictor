@@ -32,7 +32,7 @@ st.markdown("""
     margin-bottom: 2rem;
 }
 .prediction-box {
-    background-color: #0d6efd;
+    background-color: #6fa8dc;
     padding: 1rem;
     border-radius: 10px;
     border-left: 5px solid #1f77b4;
