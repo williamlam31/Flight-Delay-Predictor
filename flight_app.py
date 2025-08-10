@@ -31,13 +31,6 @@ st.markdown("""
     text-align: center;
     margin-bottom: 2rem;
 }
-.prediction-box {
-    background-color: #f0f2f6;
-    padding: 1rem;
-    border-radius: 10px;
-    border-left: 5px solid #1f77b4;
-    margin: 1rem 0;
-}
 .metric-card {
     background-color: #000000;
     padding: 1rem;
