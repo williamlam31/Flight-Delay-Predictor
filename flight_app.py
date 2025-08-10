@@ -175,7 +175,6 @@ def train_models():
 # Load models
 try:
     models, scaler, feature_names, dataset = train_models()
-    st.success("✅ All models trained successfully!")
     
     # Display data source information
     if hasattr(dataset, 'columns') and len(dataset) > 50000:  # Likely real data if large
@@ -372,7 +371,7 @@ st.header("📊 Model Performance Comparison")
 # Simulated performance metrics based on your actual model results
 performance_data = {
     'Model': ['Logistic Regression', 'Naive Bayes', 'Decision Tree', 'Random Forest', 'SVM', 'KNN'],
-    'Accuracy': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],  # Updated based on typical performance
+    'Accuracy': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],  
     'Precision': [0.8789, 0.7456, 0.8934, 0.9156, 0.8567, 0.8378],
     'Recall': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],
     'F1-Score': [0.8767, 0.7289, 0.8912, 0.9134, 0.8545, 0.8356]
@@ -385,11 +384,9 @@ col1, col2 = st.columns(2)
 with col1:
     # Performance metrics table
     st.subheader("Performance Metrics")
-    st.dataframe(df_performance.style.highlight_max(axis=0))
     
     # Best model highlight
     best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
-    st.success(f"🏆 Best Performing Model: **{best_model}**")
 
 with col2:
     # Performance visualization
@@ -414,64 +411,3 @@ with col2:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-# Data Insights Section
-st.markdown("---")
-st.header("📈 Data Insights & Analytics")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("Dataset Statistics")
-    st.write("**Dataset Overview:**")
-    st.write(f"- Total Records: {len(dataset):,}")
-    st.write(f"- Features: 4 (CRS_DEP_TIME, CRS_ARR_TIME, CRS_ELAPSED_TIME, DISTANCE)")
-    st.write(f"- Training Subset: {min(10000, len(dataset)):,} samples")
-    
-    # Check if using real or sample data
-    try:
-        if hasattr(dataset, 'columns') and 'ARR_DELAY' in dataset.columns:
-            st.write(f"- Data Source: Kaggle Flight Dataset 2019-2023")
-        else:
-            st.write(f"- Data Source: Simulated Flight Data")
-    except:
-        st.write(f"- Data Source: Flight Data")
-        
-    st.write(f"- Classifications: On Time (≤15min), Short Delay (15-60min), Long Delay (>60min), Cancelled")
-    
-    # Feature statistics
-    st.write("**Feature Statistics:**")
-    feature_cols = ['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']
-    available_cols = [col for col in feature_cols if col in dataset.columns]
-    if available_cols:
-        st.dataframe(dataset[available_cols].describe().round(2))
-    else:
-        st.write("Feature statistics not available")
-
-with col2:
-    st.subheader("Feature Distributions")
-    # Feature selection for visualization
-    feature_to_plot = st.selectbox(
-        "Select Feature to Visualize:",
-        ['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']
-    )
-    
-    # Use the actual dataset for visualization
-    if feature_to_plot in dataset.columns:
-        fig = px.histogram(
-            dataset,
-            x=feature_to_plot,
-            title=f"Distribution of {feature_to_plot}",
-            nbins=30
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.write("Feature not available in current dataset")
-
-# Footer
-st.markdown("---")
-st.markdown("""
-<div style='text-align: center; color: #666666; padding: 20px;'>
-<p>✈️ Flight Delay Prediction System | Built with Streamlit</p>
-<p>For educational purposes - CIS 9660 Data Mining Project</p>
-</div>
-""", unsafe_allow_html=True)
