@@ -19,57 +19,53 @@ st.set_page_config(
     page_title="Flight Delay Prediction System",
     page_icon="✈️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"  # Hide sidebar
 )
 
 # Custom CSS for better styling
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.5rem;
-        color: #1f77b4;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .prediction-box {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 5px solid #1f77b4;
-        margin: 1rem 0;
-    }
-    .metric-card {
-        background-color: #ffffff;
-        padding: 1rem;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+.main-header {
+    font-size: 2.5rem;
+    color: #1f77b4;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.prediction-box {
+    background-color: #f0f2f6;
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 5px solid #1f77b4;
+    margin: 1rem 0;
+}
+.metric-card {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.info-box {
+    background-color: #e8f4fd;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 5px solid #1f77b4;
+    margin: 1rem 0;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # App title
 st.markdown('<h1 class="main-header">✈️ Flight Delay Prediction System</h1>', unsafe_allow_html=True)
 
-# Sidebar for model selection and info
-st.sidebar.header("🔧 Model Configuration")
-
-# Model selection
-model_choice = st.sidebar.selectbox(
-    "Choose Prediction Model:",
-    ["Random Forest", "Logistic Regression", "SVM", "Decision Tree", "Naive Bayes", "KNN"]
-)
-
-st.sidebar.markdown("---")
-st.sidebar.info("""
-**About this App:**
-This system predicts flight delays using machine learning models trained on historical flight data.
-
-**Features Used:**
-- Scheduled Departure Time
-- Scheduled Arrival Time
-- Scheduled Flight Duration
-- Flight Distance
-""")
+# App info section (moved from sidebar to main page)
+st.markdown("""
+<div class="info-box">
+<h3>📋 About this Application</h3>
+<p><strong>Purpose:</strong> This system predicts flight delays using multiple machine learning models trained on historical flight data.</p>
+<p><strong>Features Used:</strong> Scheduled Departure Time, Scheduled Arrival Time, Scheduled Flight Duration, Flight Distance</p>
+<p><strong>Models:</strong> Random Forest, Logistic Regression, SVM, Decision Tree, Naive Bayes, KNN</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Load or create models (in practice, you'd load pre-trained models)
 @st.cache_data
@@ -77,14 +73,12 @@ def load_sample_data():
     """Create sample data for demonstration"""
     np.random.seed(42)
     n_samples = 1000
-    
     data = {
         'CRS_DEP_TIME': np.random.randint(600, 2200, n_samples),
         'CRS_ARR_TIME': np.random.randint(800, 2359, n_samples),
         'CRS_ELAPSED_TIME': np.random.normal(150, 50, n_samples),
         'DISTANCE': np.random.normal(800, 400, n_samples)
     }
-    
     return pd.DataFrame(data)
 
 @st.cache_resource
@@ -94,14 +88,10 @@ def train_models():
     df = load_sample_data()
     
     # Create target variable based on scheduled times and distance
-    # This is a simplified logic - replace with your actual classification logic
     def classify_flight_status(row):
-        # Example logic based on your 4 features
         flight_duration = row['CRS_ELAPSED_TIME']
         distance = row['DISTANCE']
-        
-        # Calculate expected duration based on distance (rough estimate)
-        expected_duration = distance * 0.15 + 60  # simplified formula
+        expected_duration = distance * 0.15 + 60
         
         if flight_duration <= expected_duration * 0.9:
             return 'On Time'
@@ -112,7 +102,7 @@ def train_models():
     
     df['FLIGHT_STATUS'] = df.apply(classify_flight_status, axis=1)
     
-    # Prepare features and target - using your 4 features
+    # Prepare features and target
     X = df[['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']]
     y = df['FLIGHT_STATUS']
     
@@ -145,7 +135,7 @@ except Exception as e:
     st.error(f"❌ Error loading models: {str(e)}")
     st.stop()
 
-# Main content area - ALL ON ONE PAGE
+# Main content area - Flight Input Section
 st.header("🔮 Flight Delay Prediction")
 
 # Flight input section
@@ -153,8 +143,6 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Flight Schedule Information")
-    
-    # Input fields for your 4 features
     crs_dep_time = st.number_input(
         "Scheduled Departure Time (24hr format)",
         min_value=0, max_value=2359, value=1200,
@@ -166,10 +154,9 @@ with col1:
         min_value=0, max_value=2359, value=1500,
         help="Enter time in 24-hour format (e.g., 1630 for 4:30 PM)"
     )
-    
+
 with col2:
     st.subheader("Flight Duration & Distance")
-    
     crs_elapsed_time = st.number_input(
         "Scheduled Flight Duration (minutes)",
         min_value=30, max_value=600, value=180
@@ -183,7 +170,7 @@ with col2:
 # Prediction button
 if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
-        # Prepare input data with your 4 features
+        # Prepare input data
         input_data = np.array([[
             crs_dep_time, crs_arr_time, crs_elapsed_time, distance
         ]])
@@ -197,7 +184,6 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
         # Get predictions from ALL models
         all_predictions = {}
         all_probabilities = {}
-        
         for model_name, model in models.items():
             prediction = model.predict(input_scaled)[0]
             prediction_proba = model.predict_proba(input_scaled)[0]
@@ -206,11 +192,10 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
         
         # Display results in a grid
         col1, col2, col3 = st.columns(3)
-        
         model_names = list(models.keys())
+        
         for i, model_name in enumerate(model_names):
             col = [col1, col2, col3][i % 3]
-            
             with col:
                 prediction = all_predictions[model_name]
                 proba = all_probabilities[model_name]
@@ -221,15 +206,14 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
                 
                 st.markdown(f"""
                 <div class="prediction-box">
-                    <h4>{model_name}</h4>
-                    <h3 style="color: {color}">{prediction}</h3>
-                    <p>Confidence: {max_proba:.1%}</p>
+                <h4>{model_name}</h4>
+                <h3 style="color: {color}">{prediction}</h3>
+                <p>Confidence: {max_proba:.1%}</p>
                 </div>
                 """, unsafe_allow_html=True)
         
         # Summary of all predictions
         st.markdown("### 📊 Prediction Summary")
-        
         col1, col2 = st.columns(2)
         
         with col1:
@@ -273,21 +257,19 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
                 })
         
         confidence_df = pd.DataFrame(confidence_data)
-        
-        fig = px.bar(confidence_df, 
+        fig = px.bar(confidence_df,
                     x='Model', y='Confidence', color='Flight_Status',
                     title="Model Confidence Comparison",
                     barmode='group')
         fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
         
-        # Feature importance comparison (for applicable models)
+        # Feature importance comparison
         tree_models = ['Random Forest', 'Decision Tree']
         available_tree_models = [name for name in tree_models if name in models]
         
         if available_tree_models:
             st.markdown("### 🌳 Feature Importance Comparison")
-            
             importance_data = []
             for model_name in available_tree_models:
                 importance = models[model_name].feature_importances_
@@ -299,8 +281,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
                     })
             
             importance_df = pd.DataFrame(importance_data)
-            
-            fig = px.bar(importance_df, 
+            fig = px.bar(importance_df,
                         x='Feature', y='Importance', color='Model',
                         title="Feature Importance by Model",
                         barmode='group')
@@ -309,7 +290,6 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
         
         # Insights based on consensus
         st.markdown("### 💡 Flight Insights")
-        
         if most_common == 'On Time':
             st.success("✅ **Excellent!** Most models predict your flight will be on time. Have a great trip!")
         elif most_common == 'Short Delay':
@@ -325,7 +305,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
             st.warning(f"🤔 **Moderate Confidence**: {agreement_score:.0%} of models agree. Results may vary.")
         else:
             st.error(f"⚠️ **Low Confidence**: Only {agreement_score:.0%} of models agree. Prediction uncertainty is high.")
-            
+    
     except Exception as e:
         st.error(f"Error making prediction: {str(e)}")
 
@@ -333,7 +313,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
 st.markdown("---")
 st.header("📊 Model Performance Comparison")
 
-# Simulated performance metrics (in practice, load from your trained models)
+# Simulated performance metrics
 performance_data = {
     'Model': ['Random Forest', 'Logistic Regression', 'SVM', 'Decision Tree', 'Naive Bayes', 'KNN'],
     'Accuracy': [0.87, 0.83, 0.85, 0.79, 0.81, 0.84],
@@ -358,10 +338,9 @@ with col1:
 with col2:
     # Performance visualization
     st.subheader("Model Comparison")
-    
     fig = go.Figure()
-    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
     
+    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
     for metric in metrics:
         fig.add_trace(go.Scatter(
             x=df_performance['Model'],
@@ -388,7 +367,6 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("Dataset Statistics")
     sample_data = load_sample_data()
-    
     st.write("**Dataset Overview:**")
     st.write(f"- Total Records: {len(sample_data):,}")
     st.write(f"- Features: {len(sample_data.columns)}")
@@ -400,7 +378,6 @@ with col1:
 
 with col2:
     st.subheader("Feature Distributions")
-    
     # Feature selection for visualization
     feature_to_plot = st.selectbox(
         "Select Feature to Visualize:",
@@ -408,7 +385,7 @@ with col2:
     )
     
     fig = px.histogram(
-        sample_data, 
+        sample_data,
         x=feature_to_plot,
         title=f"Distribution of {feature_to_plot}",
         nbins=30
@@ -419,32 +396,7 @@ with col2:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666666; padding: 20px;'>
-    <p>✈️ Flight Delay Prediction System | Built with Streamlit</p>
-    <p>For educational purposes - CIS 9660 Data Mining Project</p>
+<p>✈️ Flight Delay Prediction System | Built with Streamlit</p>
+<p>For educational purposes - CIS 9660 Data Mining Project</p>
 </div>
 """, unsafe_allow_html=True)
-
-# Instructions for deployment (shown at bottom)
-st.markdown("---")
-st.markdown("### 🚀 About This Application")
-
-col1, col2 = st.columns(2)
-with col1:
-    st.markdown("""
-    **Features Used:**
-    - Scheduled Departure Time
-    - Scheduled Arrival Time  
-    - Scheduled Flight Duration
-    - Flight Distance
-    """)
-
-with col2:
-    st.markdown("""
-    **Models Included:**
-    - Random Forest
-    - Logistic Regression
-    - Support Vector Machine
-    - Decision Tree
-    - Naive Bayes
-    - K-Nearest Neighbors
-    """)
