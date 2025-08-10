@@ -45,14 +45,14 @@ st.markdown("""
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .info-box {
-    background-color: #0d6efd;
+    background-color: #e8f4fd;
     padding: 1.5rem;
     border-radius: 10px;
     border-left: 5px solid #1f77b4;
     margin: 1rem 0;
 }
 .info-box h3 {
-    color: #ffffff;
+    color: #d63384;  /* Change this color - example: pink/red */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -176,15 +176,16 @@ def train_models():
 try:
     models, scaler, feature_names, dataset = train_models()
     st.success("✅ All models trained successfully!")
+    
+    # Display data source information
+    if hasattr(dataset, 'columns') and len(dataset) > 50000:  # Likely real data if large
+        st.info("📊 Using real flight data from Kaggle dataset (2019-2023)")
+    else:
+        st.info("📊 Using simulated flight data for demonstration")
+        
 except Exception as e:
     st.error(f"❌ Error loading models: {str(e)}")
     st.stop()
-
-# Display data source information
-if 'flights_sample_3m.csv' in str(dataset):
-    st.info("📊 Using real flight data from Kaggle dataset (2019-2023)")
-else:
-    st.info("📊 Using simulated flight data for demonstration")
 
 # Main content area - Flight Input Section
 st.header("🔮 Flight Delay Prediction")
