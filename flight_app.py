@@ -31,6 +31,13 @@ st.markdown("""
     text-align: center;
     margin-bottom: 2rem;
 }
+.prediction-box {
+    background-color: #f0f2f6;
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 5px solid #1f77b4;
+    margin: 1rem 0;
+}
 .metric-card {
     background-color: #000000;
     padding: 1rem;
@@ -38,7 +45,7 @@ st.markdown("""
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .info-box {
-    background-color: #e8f4fd;
+    background-color: #000000;
     padding: 1.5rem;
     border-radius: 10px;
     border-left: 5px solid #1f77b4;
