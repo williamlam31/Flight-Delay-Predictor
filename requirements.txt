@@ -1,0 +1,10 @@
+pandas>2.0
+streamlit
+numpy<=1.25.1
+kaggle
+seaborn
+matplotlib>=3.0.0
+scikit-learn
+joblib
+plotly
+kagglehub
