@@ -47,7 +47,6 @@ st.markdown("""
 .info-box {
     padding: 1.5rem;
     border-radius: 10px;
-    border-left: 5px solid #ffffff;
     margin: 1rem 0;
 
 </style>
@@ -59,7 +58,7 @@ st.markdown('<h1 class="main-header">✈️ Flight Delay Prediction System</h1>'
 
 st.markdown("""
 <div class="info-box">
-<h3>📋 About this Application</h3>
+<h3> About this Application</h3>
 <p><strong>Purpose:</strong> This application predicts flight delays by leveraging a subset of historical flight data.</p>
 <p><strong>Features Used:</strong> Scheduled Departure Time, Scheduled Arrival Time, Scheduled Flight Duration, Flight Distance</p>
 <p><strong>Models:</strong> Logistic Regression, Naive Bayes, Decision Tree, Random Forest, SVM, KNN</p>
