@@ -141,226 +141,226 @@ except Exception as e:
     st.sidebar.error(f"❌ Error loading models: {str(e)}")
     st.stop()
 
-# Main content area
-tab1, tab2, tab3 = st.tabs(["🔮 Prediction", "📊 Model Performance", "📈 Data Insights"])
+# Main content area - ALL ON ONE PAGE
+st.header("🔮 Flight Delay Prediction")
 
-with tab1:
-    st.header("Flight Delay Prediction")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("Flight Information")
-        
-        # Input fields
-        crs_dep_time = st.number_input(
-            "Scheduled Departure Time (24hr format)",
-            min_value=0, max_value=2359, value=1200,
-            help="Enter time in 24-hour format (e.g., 1430 for 2:30 PM)"
-        )
-        
-        taxi_out = st.slider(
-            "Expected Taxi Out Time (minutes)",
-            min_value=5, max_value=60, value=15
-        )
-        
-        crs_elapsed_time = st.number_input(
-            "Scheduled Flight Duration (minutes)",
-            min_value=30, max_value=600, value=120
-        )
-        
-    with col2:
-        st.subheader("Flight Details")
-        
-        distance = st.number_input(
-            "Flight Distance (miles)",
-            min_value=50, max_value=5000, value=800
-        )
-        
-        dep_delay = st.slider(
-            "Departure Delay (minutes)",
-            min_value=-30, max_value=300, value=0,
-            help="Negative values indicate early departure"
-        )
-        
-        airline_options = {
-            'American Airlines': 0,
-            'Delta Airlines': 1,
-            'United Airlines': 2,
-            'Southwest Airlines': 3,
-            'JetBlue': 4
-        }
-        
-        airline = st.selectbox("Airline", list(airline_options.keys()))
-        airline_encoded = airline_options[airline]
-    
-    # Prediction button
-    if st.button("🚀 Predict Flight Status", type="primary"):
-        try:
-            # Prepare input data
-            input_data = np.array([[
-                crs_dep_time, taxi_out, crs_elapsed_time, 
-                distance, dep_delay, airline_encoded
-            ]])
-            
-            # Scale input
-            input_scaled = scaler.transform(input_data)
-            
-            # Get selected model
-            selected_model = models[model_choice]
-            
-            # Make prediction
-            prediction = selected_model.predict(input_scaled)[0]
-            prediction_proba = selected_model.predict_proba(input_scaled)[0]
-            
-            # Display results
-            st.markdown("---")
-            
-            col1, col2, col3 = st.columns(3)
-            
-            # Main prediction
-            with col1:
-                st.markdown(f"""
-                <div class="prediction-box">
-                    <h3>Prediction Result</h3>
-                    <h2 style="color: {'green' if prediction == 'On Time' else 'orange' if prediction == 'Short Delay' else 'red'}">
-                        {prediction}
-                    </h2>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Confidence scores
-            with col2:
-                st.subheader("Confidence Scores")
-                classes = selected_model.classes_
-                for i, (class_name, prob) in enumerate(zip(classes, prediction_proba)):
-                    st.metric(
-                        label=class_name,
-                        value=f"{prob:.1%}",
-                        delta=None
-                    )
-            
-            # Visual probability chart
-            with col3:
-                fig = px.bar(
-                    x=classes, y=prediction_proba,
-                    title="Prediction Probabilities",
-                    labels={'x': 'Flight Status', 'y': 'Probability'},
-                    color=prediction_proba,
-                    color_continuous_scale='RdYlGn_r'
-                )
-                fig.update_layout(height=300, showlegend=False)
-                st.plotly_chart(fig, use_container_width=True)
-            
-            # Additional insights
-            st.markdown("### 💡 Insights")
-            
-            if prediction == 'On Time':
-                st.success("✅ Your flight is predicted to arrive on time! Have a great trip!")
-            elif prediction == 'Short Delay':
-                st.warning("⚠️ Expect a short delay. Consider informing those picking you up.")
-            else:
-                st.error("🚨 Significant delay expected. You may want to check with the airline.")
-            
-            # Feature importance (for tree-based models)
-            if model_choice in ['Random Forest', 'Decision Tree']:
-                st.markdown("### 📊 Feature Importance")
-                importance = selected_model.feature_importances_
-                importance_df = pd.DataFrame({
-                    'Feature': feature_names,
-                    'Importance': importance
-                }).sort_values('Importance', ascending=True)
-                
-                fig = px.bar(importance_df, x='Importance', y='Feature', orientation='h',
-                           title="Feature Importance in Prediction")
-                st.plotly_chart(fig, use_container_width=True)
-                
-        except Exception as e:
-            st.error(f"Error making prediction: {str(e)}")
+# Flight input section
+col1, col2 = st.columns(2)
 
-with tab2:
-    st.header("Model Performance Comparison")
+with col1:
+    st.subheader("Flight Information")
     
-    # Simulated performance metrics (in practice, load from your trained models)
-    performance_data = {
-        'Model': ['Random Forest', 'Logistic Regression', 'SVM', 'Decision Tree', 'Naive Bayes', 'KNN'],
-        'Accuracy': [0.87, 0.83, 0.85, 0.79, 0.81, 0.84],
-        'Precision': [0.88, 0.84, 0.86, 0.80, 0.82, 0.85],
-        'Recall': [0.87, 0.83, 0.85, 0.79, 0.81, 0.84],
-        'F1-Score': [0.87, 0.83, 0.85, 0.79, 0.81, 0.84]
+    # Input fields
+    crs_dep_time = st.number_input(
+        "Scheduled Departure Time (24hr format)",
+        min_value=0, max_value=2359, value=1200,
+        help="Enter time in 24-hour format (e.g., 1430 for 2:30 PM)"
+    )
+    
+    taxi_out = st.slider(
+        "Expected Taxi Out Time (minutes)",
+        min_value=5, max_value=60, value=15
+    )
+    
+    crs_elapsed_time = st.number_input(
+        "Scheduled Flight Duration (minutes)",
+        min_value=30, max_value=600, value=120
+    )
+    
+with col2:
+    st.subheader("Flight Details")
+    
+    distance = st.number_input(
+        "Flight Distance (miles)",
+        min_value=50, max_value=5000, value=800
+    )
+    
+    dep_delay = st.slider(
+        "Departure Delay (minutes)",
+        min_value=-30, max_value=300, value=0,
+        help="Negative values indicate early departure"
+    )
+    
+    airline_options = {
+        'American Airlines': 0,
+        'Delta Airlines': 1,
+        'United Airlines': 2,
+        'Southwest Airlines': 3,
+        'JetBlue': 4
     }
     
-    df_performance = pd.DataFrame(performance_data)
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Performance metrics table
-        st.subheader("Performance Metrics")
-        st.dataframe(df_performance.style.highlight_max(axis=0))
-        
-        # Best model highlight
-        best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
-        st.success(f"🏆 Best Performing Model: **{best_model}**")
-    
-    with col2:
-        # Performance visualization
-        st.subheader("Model Comparison")
-        
-        fig = go.Figure()
-        metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-        
-        for metric in metrics:
-            fig.add_trace(go.Scatter(
-                x=df_performance['Model'],
-                y=df_performance[metric],
-                mode='lines+markers',
-                name=metric,
-                line=dict(width=3)
-            ))
-        
-        fig.update_layout(
-            title="Model Performance Comparison",
-            xaxis_title="Models",
-            yaxis_title="Score",
-            hovermode='x unified'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    airline = st.selectbox("Airline", list(airline_options.keys()))
+    airline_encoded = airline_options[airline]
 
-with tab3:
-    st.header("Data Insights & Analytics")
+# Prediction button
+if st.button("🚀 Predict Flight Status", type="primary"):
+    try:
+        # Prepare input data
+        input_data = np.array([[
+            crs_dep_time, taxi_out, crs_elapsed_time, 
+            distance, dep_delay, airline_encoded
+        ]])
+        
+        # Scale input
+        input_scaled = scaler.transform(input_data)
+        
+        # Get selected model
+        selected_model = models[model_choice]
+        
+        # Make prediction
+        prediction = selected_model.predict(input_scaled)[0]
+        prediction_proba = selected_model.predict_proba(input_scaled)[0]
+        
+        # Display results
+        st.markdown("---")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        # Main prediction
+        with col1:
+            st.markdown(f"""
+            <div class="prediction-box">
+                <h3>Prediction Result</h3>
+                <h2 style="color: {'green' if prediction == 'On Time' else 'orange' if prediction == 'Short Delay' else 'red'}">
+                    {prediction}
+                </h2>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Confidence scores
+        with col2:
+            st.subheader("Confidence Scores")
+            classes = selected_model.classes_
+            for i, (class_name, prob) in enumerate(zip(classes, prediction_proba)):
+                st.metric(
+                    label=class_name,
+                    value=f"{prob:.1%}",
+                    delta=None
+                )
+        
+        # Visual probability chart
+        with col3:
+            fig = px.bar(
+                x=classes, y=prediction_proba,
+                title="Prediction Probabilities",
+                labels={'x': 'Flight Status', 'y': 'Probability'},
+                color=prediction_proba,
+                color_continuous_scale='RdYlGn_r'
+            )
+            fig.update_layout(height=300, showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Additional insights
+        st.markdown("### 💡 Insights")
+        
+        if prediction == 'On Time':
+            st.success("✅ Your flight is predicted to arrive on time! Have a great trip!")
+        elif prediction == 'Short Delay':
+            st.warning("⚠️ Expect a short delay. Consider informing those picking you up.")
+        else:
+            st.error("🚨 Significant delay expected. You may want to check with the airline.")
+        
+        # Feature importance (for tree-based models)
+        if model_choice in ['Random Forest', 'Decision Tree']:
+            st.markdown("### 📊 Feature Importance")
+            importance = selected_model.feature_importances_
+            importance_df = pd.DataFrame({
+                'Feature': feature_names,
+                'Importance': importance
+            }).sort_values('Importance', ascending=True)
+            
+            fig = px.bar(importance_df, x='Importance', y='Feature', orientation='h',
+                       title="Feature Importance in Prediction")
+            st.plotly_chart(fig, use_container_width=True)
+            
+    except Exception as e:
+        st.error(f"Error making prediction: {str(e)}")
+
+# Model Performance Section
+st.markdown("---")
+st.header("📊 Model Performance Comparison")
+
+# Simulated performance metrics (in practice, load from your trained models)
+performance_data = {
+    'Model': ['Random Forest', 'Logistic Regression', 'SVM', 'Decision Tree', 'Naive Bayes', 'KNN'],
+    'Accuracy': [0.87, 0.83, 0.85, 0.79, 0.81, 0.84],
+    'Precision': [0.88, 0.84, 0.86, 0.80, 0.82, 0.85],
+    'Recall': [0.87, 0.83, 0.85, 0.79, 0.81, 0.84],
+    'F1-Score': [0.87, 0.83, 0.85, 0.79, 0.81, 0.84]
+}
+
+df_performance = pd.DataFrame(performance_data)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    # Performance metrics table
+    st.subheader("Performance Metrics")
+    st.dataframe(df_performance.style.highlight_max(axis=0))
     
-    col1, col2 = st.columns(2)
+    # Best model highlight
+    best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
+    st.success(f"🏆 Best Performing Model: **{best_model}**")
+
+with col2:
+    # Performance visualization
+    st.subheader("Model Comparison")
     
-    with col1:
-        st.subheader("Dataset Statistics")
-        sample_data = load_sample_data()
-        
-        st.write("**Dataset Overview:**")
-        st.write(f"- Total Records: {len(sample_data):,}")
-        st.write(f"- Features: {len(sample_data.columns)}")
-        st.write(f"- Date Range: Simulated Data")
-        
-        # Feature statistics
-        st.write("**Feature Statistics:**")
-        st.dataframe(sample_data.describe().round(2))
+    fig = go.Figure()
+    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
     
-    with col2:
-        st.subheader("Feature Distributions")
-        
-        # Feature selection for visualization
-        feature_to_plot = st.selectbox(
-            "Select Feature to Visualize:",
-            ['CRS_DEP_TIME', 'TAXI_OUT', 'CRS_ELAPSED_TIME', 'DISTANCE', 'DEP_DELAY']
-        )
-        
-        fig = px.histogram(
-            sample_data, 
-            x=feature_to_plot,
-            title=f"Distribution of {feature_to_plot}",
-            nbins=30
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    for metric in metrics:
+        fig.add_trace(go.Scatter(
+            x=df_performance['Model'],
+            y=df_performance[metric],
+            mode='lines+markers',
+            name=metric,
+            line=dict(width=3)
+        ))
+    
+    fig.update_layout(
+        title="Model Performance Comparison",
+        xaxis_title="Models",
+        yaxis_title="Score",
+        hovermode='x unified'
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+# Data Insights Section
+st.markdown("---")
+st.header("📈 Data Insights & Analytics")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Dataset Statistics")
+    sample_data = load_sample_data()
+    
+    st.write("**Dataset Overview:**")
+    st.write(f"- Total Records: {len(sample_data):,}")
+    st.write(f"- Features: {len(sample_data.columns)}")
+    st.write(f"- Date Range: Simulated Data")
+    
+    # Feature statistics
+    st.write("**Feature Statistics:**")
+    st.dataframe(sample_data.describe().round(2))
+
+with col2:
+    st.subheader("Feature Distributions")
+    
+    # Feature selection for visualization
+    feature_to_plot = st.selectbox(
+        "Select Feature to Visualize:",
+        ['CRS_DEP_TIME', 'TAXI_OUT', 'CRS_ELAPSED_TIME', 'DISTANCE', 'DEP_DELAY']
+    )
+    
+    fig = px.histogram(
+        sample_data, 
+        x=feature_to_plot,
+        title=f"Distribution of {feature_to_plot}",
+        nbins=30
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # Footer
 st.markdown("---")
