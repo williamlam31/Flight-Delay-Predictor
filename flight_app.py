@@ -384,6 +384,7 @@ col1, col2 = st.columns(2)
 with col1:
     # Performance metrics table
     st.subheader("Performance Metrics")
+    st.dataframe(df_performance)
     
     # Best model highlight
     best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
