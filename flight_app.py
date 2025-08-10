@@ -39,17 +39,20 @@ st.markdown("""
     margin: 1rem 0;
 }
 .metric-card {
-    background-color: #000000;
+    background-color: #ffffff;
     padding: 1rem;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .info-box {
-    background-color: #000000;
+    background-color: #e8f4fd;
     padding: 1.5rem;
     border-radius: 10px;
     border-left: 5px solid #1f77b4;
     margin: 1rem 0;
+}
+.info-box h3 {
+    color: #0d6efd
 }
 </style>
 """, unsafe_allow_html=True)
@@ -69,6 +72,43 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Load or create models (in practice, you'd load pre-trained models)
+@st.cache_data
+def load_kaggle_data():
+    """Load data from Kaggle dataset or use sample data as fallback"""
+    try:
+        # Try to load from Kaggle first
+        import kagglehub
+        from kagglehub import KaggleDatasetAdapter
+        
+        with st.spinner("Loading flight data from Kaggle..."):
+            df = kagglehub.load_dataset(
+                KaggleDatasetAdapter.PANDAS,
+                "patrickzel/flight-delay-and-cancellation-dataset-2019-2023",
+                "flights_sample_3m.csv"
+            )
+            
+            # Data preprocessing as in your original code
+            df_processed = df.copy()
+            
+            # Fill missing values
+            features_to_fill = ['CRS_ELAPSED_TIME', 'DEP_TIME', 'DEP_DELAY', 'ARR_TIME', 
+                              'ARR_DELAY', 'ELAPSED_TIME', 'AIR_TIME', 'DELAY_DUE_CARRIER', 
+                              'DELAY_DUE_WEATHER', 'DELAY_DUE_NAS', 'DELAY_DUE_SECURITY', 
+                              'DELAY_DUE_LATE_AIRCRAFT']
+            df_processed[features_to_fill] = df_processed[features_to_fill].fillna(0)
+            
+            # Drop features with excessive missing values
+            features_to_drop = ['TAXI_OUT', 'WHEELS_OFF', 'WHEELS_ON','TAXI_IN', 'CANCELLATION_CODE']
+            df_processed.drop(features_to_drop, axis=1, inplace=True)
+            
+            st.success(f"✅ Successfully loaded {len(df_processed):,} records from Kaggle dataset!")
+            return df_processed
+            
+    except Exception as e:
+        st.warning(f"⚠️ Could not load Kaggle data: {str(e)}")
+        st.info("Using sample data for demonstration...")
+        return load_sample_data()
+
 @st.cache_data
 def load_sample_data():
     """Create sample data for demonstration based on actual flight data patterns"""
@@ -134,11 +174,17 @@ def train_models():
 
 # Load models
 try:
-    models, scaler, feature_names = train_models()
-    st.success("✅ All models loaded successfully!")
+    models, scaler, feature_names, dataset = train_models()
+    st.success("✅ All models trained successfully!")
 except Exception as e:
     st.error(f"❌ Error loading models: {str(e)}")
     st.stop()
+
+# Display data source information
+if 'flights_sample_3m.csv' in str(dataset):
+    st.info("📊 Using real flight data from Kaggle dataset (2019-2023)")
+else:
+    st.info("📊 Using simulated flight data for demonstration")
 
 # Main content area - Flight Input Section
 st.header("🔮 Flight Delay Prediction")
@@ -375,17 +421,30 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Dataset Statistics")
-    sample_data = load_sample_data()
     st.write("**Dataset Overview:**")
-    st.write(f"- Total Records: {len(sample_data):,}")
+    st.write(f"- Total Records: {len(dataset):,}")
     st.write(f"- Features: 4 (CRS_DEP_TIME, CRS_ARR_TIME, CRS_ELAPSED_TIME, DISTANCE)")
-    st.write(f"- Training Subset: 10,000 samples")
-    st.write(f"- Data Source: Flight Delay Dataset 2019-2023")
-    st.write(f"- Classifications: On Time, Short Delay, Long Delay, Cancelled")
+    st.write(f"- Training Subset: {min(10000, len(dataset)):,} samples")
+    
+    # Check if using real or sample data
+    try:
+        if hasattr(dataset, 'columns') and 'ARR_DELAY' in dataset.columns:
+            st.write(f"- Data Source: Kaggle Flight Dataset 2019-2023")
+        else:
+            st.write(f"- Data Source: Simulated Flight Data")
+    except:
+        st.write(f"- Data Source: Flight Data")
+        
+    st.write(f"- Classifications: On Time (≤15min), Short Delay (15-60min), Long Delay (>60min), Cancelled")
     
     # Feature statistics
     st.write("**Feature Statistics:**")
-    st.dataframe(sample_data.describe().round(2))
+    feature_cols = ['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']
+    available_cols = [col for col in feature_cols if col in dataset.columns]
+    if available_cols:
+        st.dataframe(dataset[available_cols].describe().round(2))
+    else:
+        st.write("Feature statistics not available")
 
 with col2:
     st.subheader("Feature Distributions")
@@ -395,13 +454,17 @@ with col2:
         ['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']
     )
     
-    fig = px.histogram(
-        sample_data,
-        x=feature_to_plot,
-        title=f"Distribution of {feature_to_plot}",
-        nbins=30
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    # Use the actual dataset for visualization
+    if feature_to_plot in dataset.columns:
+        fig = px.histogram(
+            dataset,
+            x=feature_to_plot,
+            title=f"Distribution of {feature_to_plot}",
+            nbins=30
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.write("Feature not available in current dataset")
 
 # Footer
 st.markdown("---")
