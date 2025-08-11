@@ -10,15 +10,11 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 import plotly.graph_objects as go
 
-
 import warnings
 warnings.filterwarnings('ignore')
 
-
 st.title("Flight Delay Predictor")
 st.write("This application predicts if your flight will be delayed based on selected factors.")
-
-
 
 @st.cache_data
 def load_kaggle_data():
@@ -26,54 +22,40 @@ def load_kaggle_data():
     from kagglehub import KaggleDatasetAdapter
     df = kagglehub.load_dataset(KaggleDatasetAdapter.PANDAS,
                 "patrickzel/flight-delay-and-cancellation-dataset-2019-2023",
-                "flights_sample_3m.csv"
-            )
-            
- 
+                "flights_sample_3m.csv")
+
     df_processed = df.copy()
-            
-  
+
     features_to_fill = ['CRS_ELAPSED_TIME', 'DEP_TIME', 'DEP_DELAY', 'ARR_TIME', 
-                              'ARR_DELAY', 'ELAPSED_TIME', 'AIR_TIME', 'DELAY_DUE_CARRIER', 
-                              'DELAY_DUE_WEATHER', 'DELAY_DUE_NAS', 'DELAY_DUE_SECURITY', 
-                              'DELAY_DUE_LATE_AIRCRAFT']
-    
+                        'ARR_DELAY', 'ELAPSED_TIME', 'AIR_TIME', 'DELAY_DUE_CARRIER', 
+                        'DELAY_DUE_WEATHER', 'DELAY_DUE_NAS', 'DELAY_DUE_SECURITY', 
+                        'DELAY_DUE_LATE_AIRCRAFT']
     df_processed[features_to_fill] = df_processed[features_to_fill].fillna(0)
-            
-  
+
     features_to_drop = ['TAXI_OUT', 'WHEELS_OFF', 'WHEELS_ON','TAXI_IN', 'CANCELLATION_CODE']
     df_processed.drop(features_to_drop, axis=1, inplace=True)
 
     return df_processed
-#Sample Data due to original dataset being too large
 
 @st.cache_data
-
 def sample_data():
     df = load_kaggle_data()
-
     df = df.sample(n=10000, random_state=42)
-    
     df = df.dropna(subset=['ARR_DELAY', 'CANCELLED'])
-
-    df = df[['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE', 'ARR_DELAY', 'CANCELLED']]
-
+    df = df[['CRS_DEP_TIME', 'CRS_ELAPSED_TIME', 'MONTH', 'AIRLINE', 'ARR_DELAY', 'CANCELLED']]
     return df
 
 @st.cache_resource
 def train_models():
-
     df = sample_data()
-    
     df['FLIGHT_STATUS'] = np.where(df['ARR_DELAY'] > 15, 'Delayed', 'Not Delayed')
-
-    X = df[['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']]
+    X = df[['CRS_DEP_TIME', 'CRS_ELAPSED_TIME', 'MONTH', 'AIRLINE']]
+    X = pd.get_dummies(X, columns=['MONTH', 'AIRLINE'], drop_first=True)
     y = df['FLIGHT_STATUS']
-    
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
+
     models = {
         'Logistic Regression': LogisticRegression(random_state=42, max_iter=500, solver='liblinear'),
         'Naive Bayes': GaussianNB(),
@@ -82,61 +64,41 @@ def train_models():
         'SVM': SVC(random_state=42, kernel='linear', probability=True),
         'KNN': KNeighborsClassifier(n_neighbors=5)
     }
-    
+
     trained_models = {}
     for name, model in models.items():
         model.fit(X_scaled, y)
         trained_models[name] = model
-    
+
     return trained_models, scaler, X.columns.tolist(), df
 
-
 st.header("Flight Delay Prediction")
-
 models, scaler, feature_names, df_training = train_models()
 
 col1, col2, col3 = st.columns(3)
-
 with col1:
-    crs_dep_time = st.number_input(
-        "Departure Time (HHMM)",
-        min_value=0, max_value=2359, value=800,
-        help="e.g. 1430 for 2:30 PM"
-    )
+    crs_dep_time = st.number_input("Departure Time (HHMM)", min_value=0, max_value=2359, value=800)
 with col2:
-    crs_arr_time = st.number_input(
-        "Arrival Time (HHMM)",
-        min_value=0, max_value=2359, value=1000,
-        help="e.g. 1600 for 4:00 PM"
-    )
+    airline = st.selectbox("Airline", ['AA', 'DL', 'UA', 'WN', 'B6', 'AS', 'NK'])
 with col3:
-    distance = st.number_input(
-        "Distance (miles)",
-        min_value=10, max_value=9000, value=500
-    )
-
+    month = st.selectbox("Flight Month (1–12)", list(range(1, 13)))
 
 if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
-        def time_to_minutes(t):
-            t = str(int(t)).zfill(4)
-            return int(t[:2]) * 60 + int(t[2:])
-        dep_minutes = time_to_minutes(crs_dep_time)
-        arr_minutes = time_to_minutes(crs_arr_time)
+        input_dict = {
+            'CRS_DEP_TIME': crs_dep_time,
+            'CRS_ELAPSED_TIME': 90,
+            f'MONTH_{month}': 1,
+            f'AIRLINE_{airline}': 1
+        }
 
-        crs_elapsed_time = (arr_minutes - dep_minutes) % (24 * 60)
-     
-        input_data = np.array([[
-            crs_dep_time, crs_arr_time, crs_elapsed_time, distance
-        ]])
-        
-   
-        input_scaled = scaler.transform(input_data)
-        
+        input_df = pd.DataFrame([input_dict])
+        input_df = input_df.reindex(columns=feature_names, fill_value=0)
+        input_scaled = scaler.transform(input_df)
+
         st.markdown("---")
         st.header("Predictions from All Models")
-        
- 
+
         all_predictions = {}
         all_probabilities = {}
         for model_name, model in models.items():
@@ -144,21 +106,19 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
             prediction_proba = model.predict_proba(input_scaled)[0]
             all_predictions[model_name] = prediction
             all_probabilities[model_name] = prediction_proba
-        
 
         col1, col2, col3 = st.columns(3)
         model_names = list(models.keys())
-        
+
         for i, model_name in enumerate(model_names):
             col = [col1, col2, col3][i % 3]
             with col:
                 prediction = all_predictions[model_name]
                 proba = all_probabilities[model_name]
                 max_proba = max(proba)
-                
-    
+
                 color = 'green' if prediction == 'Not Delayed' else 'red'
-                
+
                 st.markdown(f"""
                 <div class="prediction-box">
                 <h4>{model_name}</h4>
@@ -166,28 +126,24 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
                 <p>Confidence: {max_proba:.1%}</p>
                 </div>
                 """, unsafe_allow_html=True)
-        
 
         st.markdown("### Prediction Summary")
         col1, col2 = st.columns(2)
-        
+
         with col1:
-  
             prediction_counts = {}
             for pred in all_predictions.values():
                 prediction_counts[pred] = prediction_counts.get(pred, 0) + 1
-            
+
             st.write("**Model Consensus:**")
             for status, count in prediction_counts.items():
                 percentage = (count / len(models)) * 100
                 st.write(f"• {status}: {count}/{len(models)} models ({percentage:.0f}%)")
-            
-   
+
             most_common = max(prediction_counts, key=prediction_counts.get)
             st.success(f"**Consensus Prediction: {most_common}**")
-        
-        with col2:
 
+        with col2:
             st.write("**All Model Predictions:**")
             results_df = pd.DataFrame({
                 'Model': model_names,
@@ -195,58 +151,11 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
                 'Confidence': [f"{max(all_probabilities[name]):.1%}" for name in model_names]
             })
             st.dataframe(results_df, use_container_width=True)
-        
 
         if most_common == 'Not Delayed':
             st.success("Your flight is expected to be on time or only slightly delayed.")
         elif most_common == 'Delayed':
             st.error("Your flight is expected to be significantly delayed.")
-        
-    
+
     except Exception as e:
         st.error(f"Error making prediction: {str(e)}")
-
-st.markdown("---")
-st.header("Model Comparison")
-
-
-performance_data = {
-    'Model': ['Logistic Regression', 'Naive Bayes', 'Decision Tree', 'Random Forest', 'SVM', 'KNN'],
-    'Accuracy': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],  
-    'Precision': [0.8789, 0.7456, 0.8934, 0.9156, 0.8567, 0.8378],
-    'Recall': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],
-    'F1-Score': [0.8767, 0.7289, 0.8912, 0.9134, 0.8545, 0.8356]
-}
-
-df_performance = pd.DataFrame(performance_data)
-
-
-st.subheader("Performance Metrics")
-st.dataframe(df_performance)
-    
-
-best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
-
-
-
-st.subheader("Model Comparison")
-fig = go.Figure()
-    
-metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-for metric in metrics:
-    fig.add_trace(go.Scatter(
-        x=df_performance['Model'],
-        y=df_performance[metric],
-        mode='lines+markers',
-        name=metric,
-        line=dict(width=3)
-    ))
-    
-fig.update_layout(
-    title="Model Performance Comparison",
-    xaxis_title="Models",
-    yaxis_title="Score",
-    hovermode='x unified'
-)
-st.plotly_chart(fig, use_container_width=True)
-
