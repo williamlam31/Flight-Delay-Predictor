@@ -95,37 +95,39 @@ st.header("Flight Delay Prediction")
 
 models, scaler, feature_names, df_training = train_models()
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     crs_dep_time = st.number_input(
-        "Scheduled Departure Time (24hr format)",
-        min_value=0, max_value=2359, value=0,
-        help="Enter time in 24-hour format (e.g., 1630 for 4:30 PM)"
+        "Departure Time (HHMM)",
+        min_value=0, max_value=2359, value=800,
+        help="e.g. 1430 for 2:30 PM"
     )
-
-    
-    crs_arr_time = st.number_input(
-        "Scheduled Arrival Time (24hr format)",
-        min_value=0, max_value=2359, value=0,
-        help="Enter time in 24-hour format (e.g., 1630 for 4:30 PM)"
-    )
-
 with col2:
-    crs_elapsed_time = st.number_input(
-        "Scheduled Flight Duration (minutes)",
-         value=30
+    crs_arr_time = st.number_input(
+        "Arrival Time (HHMM)",
+        min_value=0, max_value=2359, value=1000,
+        help="e.g. 1600 for 4:00 PM"
     )
-    
+with col3:
     distance = st.number_input(
-        "Flight Distance (miles)",
-         value=50
+        "Distance (miles)",
+        min_value=10, max_value=9000, value=500
     )
 
 
 if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
- 
+        def time_to_minutes(t):
+            t = str(int(t)).zfill(4)
+            return int(t[:2]) * 60 + int(t[2:])
+
+    dep_minutes = time_to_minutes(crs_dep_time)
+    arr_minutes = time_to_minutes(crs_arr_time)
+
+# Handle overnight flights with modulo
+crs_elapsed_time = (arr_minutes - dep_minutes) % (24 * 60)
+     
         input_data = np.array([[
             crs_dep_time, crs_arr_time, crs_elapsed_time, distance
         ]])
