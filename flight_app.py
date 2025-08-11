@@ -65,11 +65,7 @@ def train_models():
 
     df = sample_data()
     
-
-def classify_flight_status(row):
-    
     df['FLIGHT_STATUS'] = np.where(df['ARR_DELAY'] > 15, 'Delayed', 'Not Delayed')
-    
 
     X = df[['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE']]
     y = df['FLIGHT_STATUS']
