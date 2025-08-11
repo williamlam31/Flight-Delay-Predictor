@@ -9,10 +9,9 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime
-
 import warnings
+
 warnings.filterwarnings('ignore')
 
 st.title("Flight Delay Predictor")
@@ -101,57 +100,12 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
         input_df = input_df.reindex(columns=feature_names, fill_value=0)
         input_scaled = scaler.transform(input_df)
 
-        st.markdown("---")
-        st.header("Predictions from All Models")
-
-        all_predictions = {}
-        all_probabilities = {}
-        for model_name, model in models.items():
+        all_predictions = []
+        for model in models.values():
             prediction = model.predict(input_scaled)[0]
-            prediction_proba = model.predict_proba(input_scaled)[0]
-            all_predictions[model_name] = prediction
-            all_probabilities[model_name] = prediction_proba
+            all_predictions.append(prediction)
 
-        col1, col2, col3 = st.columns(3)
-        model_names = list(models.keys())
-
-        for i, model_name in enumerate(model_names):
-            col = [col1, col2, col3][i % 3]
-            with col:
-                prediction = all_predictions[model_name]
-                proba = all_probabilities[model_name]
-                max_proba = max(proba)
-                color = 'green' if prediction == 'Not Delayed' else 'red'
-                st.markdown(f"""
-                <div class="prediction-box">
-                <h4>{model_name}</h4>
-                <h3 style="color: {color}">{prediction}</h3>
-                <p>Confidence: {max_proba:.1%}</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-        st.markdown("### Prediction Summary")
-        col1, col2 = st.columns(2)
-
-        with col1:
-            prediction_counts = {}
-            for pred in all_predictions.values():
-                prediction_counts[pred] = prediction_counts.get(pred, 0) + 1
-            st.write("**Model Consensus:**")
-            for status, count in prediction_counts.items():
-                percentage = (count / len(models)) * 100
-                st.write(f"• {status}: {count}/{len(models)} models ({percentage:.0f}%)")
-            most_common = max(prediction_counts, key=prediction_counts.get)
-            st.success(f"**Consensus Prediction: {most_common}**")
-
-        with col2:
-            st.write("**All Model Predictions:**")
-            results_df = pd.DataFrame({
-                'Model': model_names,
-                'Prediction': [all_predictions[name] for name in model_names],
-                'Confidence': [f"{max(all_probabilities[name]):.1%}" for name in model_names]
-            })
-            st.dataframe(results_df, use_container_width=True)
+        most_common = max(set(all_predictions), key=all_predictions.count)
 
         if most_common == 'Not Delayed':
             st.success("Your flight is expected to be on time or only slightly delayed.")
@@ -163,7 +117,6 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
 
 st.markdown("---")
 st.header("Flight Delay Trends")
-
 
 monthly_max = df_training.loc[df_training.groupby('MONTH')['ARR_DELAY'].idxmax()][['MONTH', 'ARR_DELAY', 'AIRLINE']]
 monthly_max['ARR_DELAY'] = monthly_max['ARR_DELAY'].astype(int)
