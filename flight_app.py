@@ -8,6 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
+import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
@@ -44,13 +45,13 @@ def sample_data():
     df = df.sample(n=10000, random_state=42)
     df = df.dropna(subset=['ARR_DELAY', 'CANCELLED'])
     df['MONTH'] = pd.to_datetime(df['FL_DATE']).dt.month
-    df = df[['CRS_DEP_TIME', 'CRS_ELAPSED_TIME', 'MONTH', 'AIRLINE', 'DEST', 'ARR_DELAY', 'CANCELLED']]
+    df['FLIGHT_STATUS'] = np.where(df['ARR_DELAY'] > 15, 'Delayed', 'Not Delayed')
+    df = df[['CRS_DEP_TIME', 'CRS_ELAPSED_TIME', 'MONTH', 'AIRLINE', 'DEST', 'ARR_DELAY', 'CANCELLED', 'FLIGHT_STATUS']]
     return df
 
 @st.cache_resource
 def train_models():
     df = sample_data()
-    df['FLIGHT_STATUS'] = np.where(df['ARR_DELAY'] > 15, 'Delayed', 'Not Delayed')
     X = df[['CRS_DEP_TIME', 'CRS_ELAPSED_TIME', 'MONTH', 'AIRLINE', 'DEST']]
     X = pd.get_dummies(X, columns=['MONTH', 'AIRLINE', 'DEST'], drop_first=True)
     y = df['FLIGHT_STATUS']
@@ -163,11 +164,13 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
 st.markdown("---")
 st.header("Flight Delay Trends")
 
-# Table: Delay rate by airline and month
-delay_summary = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0)
-delay_table = delay_summary.reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
-st.subheader("Delay Probability Table (AIRLINE x MONTH)")
-st.dataframe(delay_table)
+# Table: Max delay probability by airport
+summary = df_training.groupby(['DEST', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()
+max_delay_per_airport = summary.loc[summary.groupby('DEST')['Delayed'].idxmax()][['DEST', 'MONTH', 'Delayed']]
+max_delay_per_airport.rename(columns={'MONTH': 'Month with Max Delay', 'Delayed': 'Max Delay Probability'}, inplace=True)
+
+st.subheader("Max Delay Probability by Airport")
+st.dataframe(max_delay_per_airport)
 
 # Bar chart: x = airport, y = month, color = delay prob
 delay_chart = df_training.groupby(['DEST', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0)
