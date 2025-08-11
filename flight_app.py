@@ -22,8 +22,7 @@ st.write("This application predicts if your flight will be delayed based on sele
 def load_kaggle_data():
     import kagglehub
     from kagglehub import KaggleDatasetAdapter
-        df = kagglehub.load_dataset(
-                KaggleDatasetAdapter.PANDAS,
+    df = kagglehub.load_dataset(KaggleDatasetAdapter.PANDAS,
                 "patrickzel/flight-delay-and-cancellation-dataset-2019-2023",
                 "flights_sample_3m.csv"
             )
