@@ -100,6 +100,7 @@ def classify_flight_status(row):
 
 st.header("Flight Delay Prediction")
 
+models, scaler, feature_names, df_training = train_models()
 
 col1, col2 = st.columns(2)
 
@@ -131,7 +132,6 @@ with col2:
 
 if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
-        models, scaler, feature_names, df_training = train_models()
  
         input_data = np.array([[
             crs_dep_time, crs_arr_time, crs_elapsed_time, distance
