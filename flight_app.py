@@ -170,6 +170,7 @@ monthly_max['ARR_DELAY'] = monthly_max['ARR_DELAY'].astype(int)
 monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
 
 st.subheader("Longest Delay by Month and Airline")
+monthly_max = monthly_max.reset_index(drop=True)
 styled_table = monthly_max.style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'})
 st.write(styled_table.to_html(index=False), unsafe_allow_html=True)
 
