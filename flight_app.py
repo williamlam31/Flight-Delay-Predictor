@@ -78,7 +78,8 @@ models, scaler, feature_names, df_training = train_models()
 
 col1, col2 = st.columns(2)
 with col1:
-    crs_dep_time = st.number_input("Departure Time (HHMM)", min_value=0, max_value=2359, value=800)
+    dep_time_input = st.time_input("Departure Time (HH:MM)", value=datetime.strptime("08:00", "%H:%M").time())
+    crs_dep_time = int(dep_time_input.strftime("%H%M"))
     airline = st.selectbox("Airline", ['AA', 'DL', 'UA', 'WN', 'B6', 'AS', 'NK'])
 with col2:
     month = st.selectbox("Flight Month (1–12)", list(range(1, 13)))
