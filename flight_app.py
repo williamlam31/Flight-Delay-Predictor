@@ -170,10 +170,10 @@ monthly_max['ARR_DELAY'] = monthly_max['ARR_DELAY'].astype(int)
 monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
 
 st.subheader("Longest Delay by Month and Airline")
-styled_table = monthly_max.style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'}).set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
-st.write(styled_table.hide(axis='index'))
+styled_table = monthly_max.style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'}).set_table_styles([dict(selector='th', props=[('text-align', 'center')])])])])
+st.write(styled_table.set_table_styles([{'selector': 'th.col_heading.level0', 'props': [('display', 'none')]}]))
 
-
+# Bar chart: x = airline, y = delay prob, color = month
 delay_chart = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
 fig_bar = px.bar(delay_chart, x='AIRLINE', y='Delayed', color='MONTH', barmode='group',
                  title="Delay Probability by Airline and Month",
@@ -181,4 +181,3 @@ fig_bar = px.bar(delay_chart, x='AIRLINE', y='Delayed', color='MONTH', barmode='
 fig_bar.update_traces(hoverinfo='none', hovertemplate=None)
 fig_bar.update_layout(clickmode='none')
 st.plotly_chart(fig_bar, use_container_width=True)
-
