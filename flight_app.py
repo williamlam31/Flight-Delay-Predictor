@@ -114,7 +114,6 @@ st.header("Flight Delay Prediction")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Flight Schedule Information")
     crs_dep_time = st.number_input(
         "Scheduled Departure Time (24hr format)",
         min_value=0, max_value=2359, value=0,
@@ -129,7 +128,6 @@ with col1:
     )
 
 with col2:
-    st.subheader("Flight Duration & Distance")
     crs_elapsed_time = st.number_input(
         "Scheduled Flight Duration (minutes)",
         min_value=30, max_value=600, value=30
