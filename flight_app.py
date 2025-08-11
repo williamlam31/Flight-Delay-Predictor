@@ -17,9 +17,7 @@ warnings.filterwarnings('ignore')
 
 st.set_page_config(
     page_title="Flight Delay Prediction",
-    page_icon="✈️",
     layout="wide",
-    initial_sidebar_state="collapsed" 
 )
 
 
