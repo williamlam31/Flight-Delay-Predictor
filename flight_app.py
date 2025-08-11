@@ -55,7 +55,7 @@ def sample_data():
         'CRS_DEP_TIME': np.random.randint(500, 2359, n_samples),
         'CRS_ARR_TIME': np.random.randint(600, 2359, n_samples),  
         'CRS_ELAPSED_TIME': np.abs(np.random.normal(150, 60, n_samples)), 
-        'DISTANCE': np.abs(np.random.normal(800, 500, n_samples))
+        'DISTANCE': np.abs(np.random.normal(800, 500, n_samples)),
         'ARR_DELAY': np.random.normal(5, 45, n_samples), 
         'CANCELLED': np.random.choice([0, 1], n_samples, p=[0.98, 0.02])  
     }
