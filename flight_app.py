@@ -164,18 +164,17 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
 st.markdown("---")
 st.header("Flight Delay Trends")
 
-# Table: Max delay probability by airport
-summary = df_training.groupby(['DEST', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()
-max_delay_per_airport = summary.loc[summary.groupby('DEST')['Delayed'].idxmax()][['DEST', 'MONTH', 'Delayed']]
-max_delay_per_airport.rename(columns={'MONTH': 'Month with Max Delay', 'Delayed': 'Max Delay Probability'}, inplace=True)
 
-st.subheader("Max Delay Probability by Airport")
-st.dataframe(max_delay_per_airport)
+summary = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()
+max_delay_per_airline = summary.loc[summary.groupby('AIRLINE')['Delayed'].idxmax()][['AIRLINE', 'MONTH', 'Delayed']]
+max_delay_per_airline.rename(columns={'MONTH': 'Month with Longest Delay', 'Delayed': 'Max Delay Probability'}, inplace=True)
 
-# Bar chart: x = airport, y = month, color = delay prob
-delay_chart = df_training.groupby(['DEST', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0)
-delay_chart = delay_chart.reset_index()[['DEST', 'MONTH', 'Delayed']]
-fig_bar = px.bar(delay_chart, x='DEST', y='Delayed', color='MONTH', barmode='group',
-                 title="Delay Probability by Airport and Month",
-                 labels={'Delayed': 'Probability of Delay', 'DEST': 'Destination Airport'})
+st.subheader("Max Delay Probability by Airline")
+st.dataframe(max_delay_per_airline)
+
+# Bar chart: x = airline, y = delay prob, color = month
+delay_chart = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
+fig_bar = px.bar(delay_chart, x='AIRLINE', y='Delayed', color='MONTH', barmode='group',
+                 title="Delay Probability by Airline and Month",
+                 labels={'Delayed': 'Probability of Delay', 'AIRLINE': 'Airline'})
 st.plotly_chart(fig_bar, use_container_width=True)
