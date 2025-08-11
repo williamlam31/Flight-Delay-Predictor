@@ -28,18 +28,19 @@ def load_kaggle_data():
             )
             
  
-            df_processed = df.copy()
+    df_processed = df.copy()
             
   
-            features_to_fill = ['CRS_ELAPSED_TIME', 'DEP_TIME', 'DEP_DELAY', 'ARR_TIME', 
+    features_to_fill = ['CRS_ELAPSED_TIME', 'DEP_TIME', 'DEP_DELAY', 'ARR_TIME', 
                               'ARR_DELAY', 'ELAPSED_TIME', 'AIR_TIME', 'DELAY_DUE_CARRIER', 
                               'DELAY_DUE_WEATHER', 'DELAY_DUE_NAS', 'DELAY_DUE_SECURITY', 
                               'DELAY_DUE_LATE_AIRCRAFT']
-            df_processed[features_to_fill] = df_processed[features_to_fill].fillna(0)
+    
+    df_processed[features_to_fill] = df_processed[features_to_fill].fillna(0)
             
   
-            features_to_drop = ['TAXI_OUT', 'WHEELS_OFF', 'WHEELS_ON','TAXI_IN', 'CANCELLATION_CODE']
-            df_processed.drop(features_to_drop, axis=1, inplace=True)
+    features_to_drop = ['TAXI_OUT', 'WHEELS_OFF', 'WHEELS_ON','TAXI_IN', 'CANCELLATION_CODE']
+    df_processed.drop(features_to_drop, axis=1, inplace=True)
 
 #Sample Data due to original dataset being too large
 
