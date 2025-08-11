@@ -1,80 +1,28 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
-import plotly.express as px
-import plotly.graph_objects as go
-from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+
 import warnings
 warnings.filterwarnings('ignore')
 
 
-st.set_page_config(
-    page_title="Flight Delay Prediction",
-    layout="wide",
-)
+st.title("Flight Delay Predictor")
+st.write("This application predicts if your flight will be delayed based on selected factors.")
 
-
-st.markdown("""
-<style>
-.main-header {
-    font-size: 2.5rem;
-    color: #1f77b4;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.prediction-box {
-    background-color: #6fa8dc;
-    padding: 1rem;
-    border-radius: 10px;
-    border-left: 5px solid #1f77b4;
-    margin: 1rem 0;
-}
-.metric-card {
-    background-color: #ffffff;
-    padding: 1rem;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.info-box {
-    padding: 1.5rem;
-    border-radius: 10px;
-    margin: 1rem 0;
-
-</style>
-""", unsafe_allow_html=True)
-
-
-st.markdown('<h1 class="main-header">✈️ Flight Delay Prediction System</h1>', unsafe_allow_html=True)
-
-
-st.markdown("""
-<div class="info-box">
-<h3> About this Application</h3>
-<p><strong>Purpose:</strong> This application predicts flight delays by leveraging a subset of historical flight data.</p>
-<p><strong>Features Used:</strong> Scheduled Departure Time, Scheduled Arrival Time, Scheduled Flight Duration, Flight Distance</p>
-<p><strong>Models:</strong> Logistic Regression, Naive Bayes, Decision Tree, Random Forest, SVM, KNN</p>
-<p><strong>Classifications:</strong> On Time (≤15 min), Short Delay (15-60 min), Long Delay (>60 min), Cancelled</p>
-</div>
-""", unsafe_allow_html=True)
 
 
 @st.cache_data
 def load_kaggle_data():
-    """Load data from Kaggle dataset or use sample data as fallback"""
-    try:
-
-        import kagglehub
-        from kagglehub import KaggleDatasetAdapter
-        
-        with st.spinner("Loading flight data from Kaggle..."):
-            df = kagglehub.load_dataset(
+    import kagglehub
+    from kagglehub import KaggleDatasetAdapter
+        df = kagglehub.load_dataset(
                 KaggleDatasetAdapter.PANDAS,
                 "patrickzel/flight-delay-and-cancellation-dataset-2019-2023",
                 "flights_sample_3m.csv"
@@ -93,37 +41,30 @@ def load_kaggle_data():
   
             features_to_drop = ['TAXI_OUT', 'WHEELS_OFF', 'WHEELS_ON','TAXI_IN', 'CANCELLATION_CODE']
             df_processed.drop(features_to_drop, axis=1, inplace=True)
-            
-            st.success(f"✅ Successfully loaded {len(df_processed):,} records from Kaggle dataset!")
-            return df_processed
-            
-    except Exception as e:
-        st.warning(f"⚠️ Could not load Kaggle data: {str(e)}")
-        st.info("Using sample data for demonstration...")
-        return load_sample_data()
+
+#Sample Data due to original dataset being too large
 
 @st.cache_data
-def load_sample_data():
-    """Create sample data for demonstration based on actual flight data patterns"""
+def sample_data():
+
     np.random.seed(42)
     n_samples = 10000 
-    
+
 
     data = {
-        'CRS_DEP_TIME': np.random.randint(500, 2359, n_samples),  # 5:00 AM to 11:59 PM
-        'CRS_ARR_TIME': np.random.randint(600, 2359, n_samples),   # 6:00 AM to 11:59 PM
-        'CRS_ELAPSED_TIME': np.abs(np.random.normal(150, 60, n_samples)),  # More realistic flight times
-        'DISTANCE': np.abs(np.random.normal(800, 500, n_samples)),  # Distance in miles
-        'ARR_DELAY': np.random.normal(5, 45, n_samples),  # Arrival delays (can be negative for early)
-        'CANCELLED': np.random.choice([0, 1], n_samples, p=[0.98, 0.02])  # 2% cancellation rate
+        'CRS_DEP_TIME': np.random.randint(500, 2359, n_samples),
+        'CRS_ARR_TIME': np.random.randint(600, 2359, n_samples),  
+        'CRS_ELAPSED_TIME': np.abs(np.random.normal(150, 60, n_samples)), 
+        'DISTANCE': np.abs(np.random.normal(800, 500, n_samples))
+        'ARR_DELAY': np.random.normal(5, 45, n_samples), 
+        'CANCELLED': np.random.choice([0, 1], n_samples, p=[0.98, 0.02])  
     }
     return pd.DataFrame(data)
 
 @st.cache_resource
 def train_models():
-    """Train models for demonstration (in practice, load pre-trained models)"""
 
-    df = load_sample_data()
+    df = sample_data()
     
 
     def classify_flight_status(row):
@@ -165,20 +106,7 @@ def train_models():
     return trained_models, scaler, X.columns.tolist(), df
 
 
-try:
-    models, scaler, feature_names, dataset = train_models()
-    
-    # Display data source information
-    if hasattr(dataset, 'columns') and len(dataset) > 50000:  # Likely real data if large
-        st.info("📊 Using Subset from Kaggle dataset (2019-2023)")
-    else:
-        st.info("📊 Using Subset from Kaggle dataset (2019-2023)")
-        
-except Exception as e:
-    st.error(f"❌ Error loading models: {str(e)}")
-    st.stop()
-
-st.header("🔮 Flight Delay Prediction")
+st.header("Flight Delay Prediction")
 
 
 col1, col2 = st.columns(2)
@@ -188,8 +116,9 @@ with col1:
     crs_dep_time = st.number_input(
         "Scheduled Departure Time (24hr format)",
         min_value=0, max_value=2359, value=0,
-        help="Enter time in 24-hour format (e.g., 1430 for 2:30 PM)"
+        help="Enter time in 24-hour format (e.g., 1630 for 4:30 PM)"
     )
+
     
     crs_arr_time = st.number_input(
         "Scheduled Arrival Time (24hr format)",
@@ -210,7 +139,7 @@ with col2:
     )
 
 
-if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_container_width=True):
+if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
  
         input_data = np.array([[
@@ -221,7 +150,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
         input_scaled = scaler.transform(input_data)
         
         st.markdown("---")
-        st.header("🎯 Predictions from All Models")
+        st.header("Predictions from All Models")
         
  
         all_predictions = {}
@@ -243,7 +172,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
                 proba = all_probabilities[model_name]
                 max_proba = max(proba)
                 
-                # Color based on prediction
+    
                 color = 'green' if prediction == 'On Time' else 'orange' if prediction == 'Short Delay' else 'red'
                 
                 st.markdown(f"""
@@ -255,11 +184,11 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
                 """, unsafe_allow_html=True)
         
 
-        st.markdown("### 📊 Prediction Summary")
+        st.markdown("### Prediction Summary")
         col1, col2 = st.columns(2)
         
         with col1:
-            # Count predictions
+  
             prediction_counts = {}
             for pred in all_predictions.values():
                 prediction_counts[pred] = prediction_counts.get(pred, 0) + 1
@@ -269,7 +198,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
                 percentage = (count / len(models)) * 100
                 st.write(f"• {status}: {count}/{len(models)} models ({percentage:.0f}%)")
             
-            # Most common prediction
+   
             most_common = max(prediction_counts, key=prediction_counts.get)
             st.success(f"**Consensus Prediction: {most_common}**")
         
@@ -284,17 +213,17 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
             st.dataframe(results_df, use_container_width=True)
         
 
-        st.markdown("### 💡 Flight Insights")
+        st.markdown("### Flight Insights")
         if most_common == 'On Time':
-            st.success("✅ **Excellent!** Most models predict your flight will be on time (≤15 min delay). Have a great trip!")
+            st.success("Your flight will be delay 15 or less minutes.")
         elif most_common == 'Short Delay':
-            st.warning("⚠️ **Moderate Risk** - Most models predict a short delay (15-60 minutes). Consider informing those picking you up and checking with your airline.")
+            st.warning("Your flight will experience delays in the range of 15-60 minutes.")
         elif most_common == 'Long Delay':
-            st.error("🚨 **High Risk** - Most models predict significant delays (>60 minutes). We recommend checking with your airline and having backup plans.")
+            st.error("Your flight will experience delays of over 60 minutes.")
         elif most_common == 'Cancelled':
-            st.error("❌ **Cancellation Risk** - Some models predict potential cancellation. Monitor your flight status closely.")
+            st.error("Your flight is expected to be cancelled.")
         else:
-            st.info("❓ **Unknown Status** - Insufficient data for reliable prediction. Check with airline directly.")
+            st.info("Flight status could not be confirmed.")
         
 
         agreement_score = max(prediction_counts.values()) / len(models)
@@ -309,7 +238,7 @@ if st.button("🚀 Predict Flight Status with ALL Models", type="primary", use_c
         st.error(f"Error making prediction: {str(e)}")
 
 st.markdown("---")
-st.header("📊 Model Performance Comparison")
+st.header("Model Comparison")
 
 
 performance_data = {
