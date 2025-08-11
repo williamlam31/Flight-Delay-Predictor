@@ -118,13 +118,11 @@ with col3:
 
 if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
-
-def time_to_minutes(t):
-    t = str(int(t)).zfill(4)
-    return int(t[:2]) * 60 + int(t[2:])
-
-dep_minutes = time_to_minutes(crs_dep_time)
-arr_minutes = time_to_minutes(crs_arr_time)
+        def time_to_minutes(t):
+            t = str(int(t)).zfill(4)
+            return int(t[:2]) * 60 + int(t[2:])
+        dep_minutes = time_to_minutes(crs_dep_time)
+        arr_minutes = time_to_minutes(crs_arr_time)
 
 crs_elapsed_time = (arr_minutes - dep_minutes) % (24 * 60)
      
