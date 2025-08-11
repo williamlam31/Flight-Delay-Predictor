@@ -47,21 +47,17 @@ def load_kaggle_data():
 #Sample Data due to original dataset being too large
 
 @st.cache_data
+
 def sample_data():
+    df = load_kaggle_data()
 
-    np.random.seed(42)
-    n_samples = 10000 
+    df = df.sample(n=10000, random_state=42)
+    
+    df = df.dropna(subset=['ARR_DELAY', 'CANCELLED'])
 
+    df = df[['CRS_DEP_TIME', 'CRS_ARR_TIME', 'CRS_ELAPSED_TIME', 'DISTANCE', 'ARR_DELAY', 'CANCELLED']]
 
-    data = {
-        'CRS_DEP_TIME': np.random.randint(500, 2359, n_samples),
-        'CRS_ARR_TIME': np.random.randint(600, 2359, n_samples),  
-        'CRS_ELAPSED_TIME': np.abs(np.random.normal(150, 60, n_samples)), 
-        'DISTANCE': np.abs(np.random.normal(800, 500, n_samples)),
-        'ARR_DELAY': np.random.normal(5, 45, n_samples), 
-        'CANCELLED': np.random.choice([0, 1], n_samples, p=[0.98, 0.02])  
-    }
-    return pd.DataFrame(data)
+    return df
 
 @st.cache_resource
 def train_models():
@@ -70,16 +66,9 @@ def train_models():
     
 
     def classify_flight_status(row):
-        if row['CANCELLED'] == 1:
-            return 'Cancelled'
-        elif pd.isna(row['ARR_DELAY']):
-            return 'Unknown'
-        elif row['ARR_DELAY'] <= 15:
-            return 'On Time'
-        elif row['ARR_DELAY'] > 15 and row['ARR_DELAY'] <= 60:
-            return 'Short Delay'
-        else:
-            return 'Long Delay'
+    
+    df['FLIGHT_STATUS'] = np.where(df['ARR_DELAY'] > 15, 'Delayed', 'Not Delayed')
+
     
     df['FLIGHT_STATUS'] = df.apply(classify_flight_status, axis=1)
     
@@ -174,7 +163,7 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
                 max_proba = max(proba)
                 
     
-                color = 'green' if prediction == 'On Time' else 'orange' if prediction == 'Short Delay' else 'red'
+                color = 'green' if prediction == 'Not Delayed' else 'red'
                 
                 st.markdown(f"""
                 <div class="prediction-box">
@@ -215,16 +204,10 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
         
 
         st.markdown("### Flight Insights")
-        if most_common == 'On Time':
-            st.success("Your flight will be delay 15 or less minutes.")
-        elif most_common == 'Short Delay':
-            st.warning("Your flight will experience delays in the range of 15-60 minutes.")
-        elif most_common == 'Long Delay':
-            st.error("Your flight will experience delays of over 60 minutes.")
-        elif most_common == 'Cancelled':
-            st.error("Your flight is expected to be cancelled.")
-        else:
-            st.info("Flight status could not be confirmed.")
+        if most_common == 'Not Delayed':
+            st.success("Your flight is expected to be on time or only slightly delayed.")
+        elif most_common == 'Delayed':
+            st.error("Your flight is expected to be significantly delayed.")
         
 
         agreement_score = max(prediction_counts.values()) / len(models)
