@@ -161,38 +161,18 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
         st.error(f"Error making prediction: {str(e)}")
 
 st.markdown("---")
-st.header("Model Comparison")
+st.header("Flight Delay Trends")
 
-performance_data = {
-    'Model': ['Logistic Regression', 'Naive Bayes', 'Decision Tree', 'Random Forest', 'SVM', 'KNN'],
-    'Accuracy': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],  
-    'Precision': [0.8789, 0.7456, 0.8934, 0.9156, 0.8567, 0.8378],
-    'Recall': [0.8756, 0.7234, 0.8901, 0.9123, 0.8534, 0.8345],
-    'F1-Score': [0.8767, 0.7289, 0.8912, 0.9134, 0.8545, 0.8356]
-}
+# Table: Delay rate by airline and month
+delay_summary = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0)
+delay_table = delay_summary.reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
+st.subheader("Delay Probability Table (AIRLINE x MONTH)")
+st.dataframe(delay_table)
 
-df_performance = pd.DataFrame(performance_data)
-
-st.subheader("Performance Metrics")
-st.dataframe(df_performance)
-
-best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
-
-st.subheader("Model Comparison")
-fig = go.Figure()
-metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-for metric in metrics:
-    fig.add_trace(go.Scatter(
-        x=df_performance['Model'],
-        y=df_performance[metric],
-        mode='lines+markers',
-        name=metric,
-        line=dict(width=3)
-    ))
-fig.update_layout(
-    title="Model Performance Comparison",
-    xaxis_title="Models",
-    yaxis_title="Score",
-    hovermode='x unified'
-)
-st.plotly_chart(fig, use_container_width=True)
+# Bar chart: x = airport, y = month, color = delay prob
+delay_chart = df_training.groupby(['DEST', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0)
+delay_chart = delay_chart.reset_index()[['DEST', 'MONTH', 'Delayed']]
+fig_bar = px.bar(delay_chart, x='DEST', y='Delayed', color='MONTH', barmode='group',
+                 title="Delay Probability by Airport and Month",
+                 labels={'Delayed': 'Probability of Delay', 'DEST': 'Destination Airport'})
+st.plotly_chart(fig_bar, use_container_width=True)
