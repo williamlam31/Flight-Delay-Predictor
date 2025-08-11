@@ -42,6 +42,7 @@ def sample_data():
     df = load_kaggle_data()
     df = df.sample(n=10000, random_state=42)
     df = df.dropna(subset=['ARR_DELAY', 'CANCELLED'])
+    df['MONTH'] = pd.to_datetime(df['FL_DATE']).dt.month
     df = df[['CRS_DEP_TIME', 'CRS_ELAPSED_TIME', 'MONTH', 'AIRLINE', 'ARR_DELAY', 'CANCELLED']]
     return df
 
