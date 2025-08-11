@@ -65,7 +65,7 @@ def train_models():
     df = sample_data()
     
 
-    def classify_flight_status(row):
+def classify_flight_status(row):
     
     df['FLIGHT_STATUS'] = np.where(df['ARR_DELAY'] > 15, 'Delayed', 'Not Delayed')
 
