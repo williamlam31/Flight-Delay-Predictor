@@ -197,7 +197,6 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
             st.dataframe(results_df, use_container_width=True)
         
 
-        st.markdown("### Flight Insights")
         if most_common == 'Not Delayed':
             st.success("Your flight is expected to be on time or only slightly delayed.")
         elif most_common == 'Delayed':
