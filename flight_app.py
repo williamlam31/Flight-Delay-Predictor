@@ -203,14 +203,6 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
         elif most_common == 'Delayed':
             st.error("Your flight is expected to be significantly delayed.")
         
-
-        agreement_score = max(prediction_counts.values()) / len(models)
-        if agreement_score >= 0.8:
-            st.info(f"🎯 **High Confidence**: {agreement_score:.0%} of models agree on this prediction.")
-        elif agreement_score >= 0.6:
-            st.warning(f"🤔 **Moderate Confidence**: {agreement_score:.0%} of models agree. Results may vary.")
-        else:
-            st.error(f"⚠️ **Low Confidence**: Only {agreement_score:.0%} of models agree. Prediction uncertainty is high.")
     
     except Exception as e:
         st.error(f"Error making prediction: {str(e)}")
