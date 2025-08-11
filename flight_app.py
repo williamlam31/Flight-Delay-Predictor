@@ -166,12 +166,13 @@ st.header("Flight Delay Trends")
 
 
 monthly_max = df_training.loc[df_training.groupby('MONTH')['ARR_DELAY'].idxmax()][['MONTH', 'ARR_DELAY', 'AIRLINE']]
+monthly_max['ARR_DELAY'] = monthly_max['ARR_DELAY'].astype(int)
 monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
 
 st.subheader("Longest Delay by Month and Airline")
 styled_table = monthly_max.reset_index(drop=True).style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'})
 styled_table = styled_table.set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
-st.write(styled_table)
+st.write(styled_table.hide(axis='index'))
 
 # Bar chart: x = airline, y = delay prob, color = month
 delay_chart = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
