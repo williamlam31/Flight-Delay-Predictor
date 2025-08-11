@@ -170,8 +170,7 @@ monthly_max['ARR_DELAY'] = monthly_max['ARR_DELAY'].astype(int)
 monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
 
 st.subheader("Longest Delay by Month and Airline")
-styled_table = monthly_max.reset_index(drop=True).style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'})
-styled_table = styled_table.set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
+styled_table = monthly_max.style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'}).set_table_styles([dict(selector='th', props=[('text-align', 'center')])])])])
 st.write(styled_table.hide(axis='index'))
 
 # Bar chart: x = airline, y = delay prob, color = month
