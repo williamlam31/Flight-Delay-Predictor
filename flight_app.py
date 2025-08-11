@@ -118,6 +118,7 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
 st.markdown("---")
 st.header("Flight Delay Trends")
 
+#Table Creation
 monthly_max = df_training.loc[df_training.groupby('MONTH')['ARR_DELAY'].idxmax()][['MONTH', 'ARR_DELAY', 'AIRLINE']]
 monthly_max['ARR_DELAY'] = monthly_max['ARR_DELAY'].astype(int)
 monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
@@ -127,11 +128,36 @@ monthly_max = monthly_max.reset_index(drop=True)
 styled_table = monthly_max.style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'})
 st.write(styled_table.hide(axis='index').to_html(), unsafe_allow_html=True)
 
-# Bar chart: x = airline, y = delay prob, color = month
-delay_chart = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
-fig_bar = px.bar(delay_chart, x='AIRLINE', y='Delayed', color='MONTH', barmode='group',
-                 title="Delay Probability by Airline and Month",
-                 labels={'Delayed': 'Probability of Delay', 'AIRLINE': 'Airline'})
-fig_bar.update_traces(hoverinfo='none', hovertemplate=None)
-fig_bar.update_layout(clickmode='none')
-st.plotly_chart(fig_bar, use_container_width=True)
+#Barchart
+flight_counts = df_training['AIRLINE'].value_counts()
+top_airlines = flight_counts.head(10).index
+filtered_df = df_training[df_training['AIRLINE'].isin(top_airlines)]
+
+flight_counts_top = filtered_df['AIRLINE'].value_counts().sort_index()
+delay_rates_top = (
+    filtered_df.groupby('AIRLINE')['FLIGHT_STATUS']
+    .value_counts(normalize=True)
+    .unstack()
+    .get('Delayed', pd.Series(0, index=top_airlines))
+)
+
+combined_df = pd.DataFrame({
+    'AIRLINE': flight_counts_top.index,
+    'Flight Count': flight_counts_top.values,
+    'Delay Rate': delay_rates_top.values
+})
+
+fig = px.bar(combined_df, x='AIRLINE', y='Flight Count',
+             title="Top 10 Airlines: Flight Volume vs Delay Rate")
+
+fig.add_scatter(x=combined_df['AIRLINE'], y=combined_df['Delay Rate'],
+                mode='lines+markers', name='Delay Rate',
+                yaxis='y2')
+
+fig.update_layout(
+    yaxis=dict(title='Flight Count'),
+    yaxis2=dict(title='Delay Rate', overlaying='y', side='right', tickformat=".0%"),
+    legend=dict(x=0.75, y=1.1),
+)
+
+st.plotly_chart(fig, use_container_width=True)
