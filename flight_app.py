@@ -169,7 +169,7 @@ monthly_max = df_training.loc[df_training.groupby('MONTH')['ARR_DELAY'].idxmax()
 monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
 
 st.subheader("Longest Delay by Month and Airline")
-st.dataframe(monthly_max.reset_index(drop=True), hide_index=True)
+st.dataframe(monthly_max.reset_index(drop=True), hide_index=True, use_container_width=True, height=500)
 
 # Bar chart: x = airline, y = delay prob, color = month
 delay_chart = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
