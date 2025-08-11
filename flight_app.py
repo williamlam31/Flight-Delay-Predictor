@@ -165,12 +165,11 @@ st.markdown("---")
 st.header("Flight Delay Trends")
 
 
-summary = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()
-max_delay_per_airline = summary.loc[summary.groupby('AIRLINE')['Delayed'].idxmax()][['AIRLINE', 'MONTH', 'Delayed']]
-max_delay_per_airline.rename(columns={'MONTH': 'Month with Longest Delay', 'Delayed': 'Max Delay Probability'}, inplace=True)
+monthly_max = df_training.loc[df_training.groupby('MONTH')['ARR_DELAY'].idxmax()][['MONTH', 'ARR_DELAY', 'AIRLINE']]
+monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
 
-st.subheader("Max Delay Probability by Airline")
-st.dataframe(max_delay_per_airline)
+st.subheader("Longest Delay by Month and Airline")
+st.dataframe(monthly_max)
 
 # Bar chart: x = airline, y = delay prob, color = month
 delay_chart = df_training.groupby(['AIRLINE', 'MONTH'])['FLIGHT_STATUS'].value_counts(normalize=True).unstack().fillna(0).reset_index()[['AIRLINE', 'MONTH', 'Delayed']]
