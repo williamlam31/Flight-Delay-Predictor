@@ -44,6 +44,7 @@ def load_kaggle_data():
     features_to_drop = ['TAXI_OUT', 'WHEELS_OFF', 'WHEELS_ON','TAXI_IN', 'CANCELLATION_CODE']
     df_processed.drop(features_to_drop, axis=1, inplace=True)
 
+    return df_processed
 #Sample Data due to original dataset being too large
 
 @st.cache_data
