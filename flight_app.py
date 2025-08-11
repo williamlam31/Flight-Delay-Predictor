@@ -141,6 +141,7 @@ with col2:
 
 if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
+        models, scaler, feature_names, df_training = train_models()
  
         input_data = np.array([[
             crs_dep_time, crs_arr_time, crs_elapsed_time, distance
@@ -251,36 +252,33 @@ performance_data = {
 
 df_performance = pd.DataFrame(performance_data)
 
-col1, col2 = st.columns(2)
 
-with col1:
-
-    st.subheader("Performance Metrics")
-    st.dataframe(df_performance)
+st.subheader("Performance Metrics")
+st.dataframe(df_performance)
     
 
-    best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
+best_model = df_performance.loc[df_performance['Accuracy'].idxmax(), 'Model']
 
-with col2:
 
-    st.subheader("Model Comparison")
-    fig = go.Figure()
+
+st.subheader("Model Comparison")
+fig = go.Figure()
     
-    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-    for metric in metrics:
-        fig.add_trace(go.Scatter(
-            x=df_performance['Model'],
-            y=df_performance[metric],
-            mode='lines+markers',
-            name=metric,
-            line=dict(width=3)
-        ))
+metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
+for metric in metrics:
+    fig.add_trace(go.Scatter(
+        x=df_performance['Model'],
+        y=df_performance[metric],
+        mode='lines+markers',
+        name=metric,
+        line=dict(width=3)
+    ))
     
-    fig.update_layout(
-        title="Model Performance Comparison",
-        xaxis_title="Models",
-        yaxis_title="Score",
-        hovermode='x unified'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+fig.update_layout(
+    title="Model Performance Comparison",
+    xaxis_title="Models",
+    yaxis_title="Score",
+    hovermode='x unified'
+)
+st.plotly_chart(fig, use_container_width=True)
 
