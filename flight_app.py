@@ -76,15 +76,13 @@ def train_models():
 st.header("Flight Delay Prediction")
 models, scaler, feature_names, df_training = train_models()
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 with col1:
     crs_dep_time = st.number_input("Departure Time (HHMM)", min_value=0, max_value=2359, value=800)
-with col2:
     airline = st.selectbox("Airline", ['AA', 'DL', 'UA', 'WN', 'B6', 'AS', 'NK'])
-with col3:
+with col2:
     month = st.selectbox("Flight Month (1–12)", list(range(1, 13)))
-
-destination = st.selectbox("Destination Airport Code", ['ATL', 'ORD', 'DFW', 'DEN', 'LAX', 'SFO', 'SEA'])
+    destination = st.selectbox("Destination Airport Code", ['ATL', 'ORD', 'DFW', 'DEN', 'LAX', 'SFO', 'SEA'])
 
 if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
     try:
