@@ -121,12 +121,12 @@ with col1:
 with col2:
     crs_elapsed_time = st.number_input(
         "Scheduled Flight Duration (minutes)",
-        min_value=30, max_value=600, value=30
+         value=30
     )
     
     distance = st.number_input(
         "Flight Distance (miles)",
-        min_value=50, max_value=5000, value=50
+         value=50
     )
 
 
