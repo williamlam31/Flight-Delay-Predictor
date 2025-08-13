@@ -59,7 +59,7 @@ def train_models():
     X = pd.get_dummies(X, columns=['MONTH', 'AIRLINE', 'DEST'], drop_first=True)
     y = df['FLIGHT_STATUS']
 
-    # --- 70:30 Train–Test split (stratified) ---
+  
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.30, random_state=42, stratify=y
     )
