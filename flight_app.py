@@ -102,7 +102,7 @@ with col2:
     month = st.selectbox("Flight Month (1–12)", list(range(1, 13)))
     destination = st.selectbox("Destination Airport Code", sorted(df_training['DEST'].unique().tolist()))
 
-if st.button("Predict Flight Status with ALL Models", type="primary", use_container_width=True):
+if st.button("Predict Flight Status", type="primary", use_container_width=True):
     try:
         input_dict = {
             'CRS_DEP_TIME': crs_dep_time,
