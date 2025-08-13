@@ -188,26 +188,6 @@ ax_bar.legend()
 st.pyplot(fig_bar)
 
 
-
-st.header("5-Fold Cross-Validation")
-cv_scores = []
-for name, model in models.items():
-    X_cv = X_train_scaled.toarray() if (name == 'Naive Bayes' and hasattr(X_train_scaled, 'toarray')) else X_train_scaled
-    scores = cross_val_score(model, X_cv, y_train, cv=5, scoring='accuracy')
-    cv_scores.append({'Model': name, 'CV_Accuracy': float(np.mean(scores))})
-
-cv_df = pd.DataFrame(cv_scores).sort_values('CV_Accuracy', ascending=False).reset_index(drop=True)
-st.write(cv_df.style.format({'CV_Accuracy': '{:.3f}'}).hide(axis='index').to_html(), unsafe_allow_html=True)
-
-fig_cv, ax_cv = plt.subplots(figsize=(8, 4))
-ax_cv.bar(cv_df['Model'], cv_df['CV_Accuracy'])
-ax_cv.set_ylim(0, 1.05)
-ax_cv.set_ylabel('Mean Accuracy (CV=5)')
-ax_cv.set_title('5-Fold Cross-Validation')
-plt.setp(ax_cv.get_xticklabels(), rotation=20, ha='right')
-st.pyplot(fig_cv)
-
-
 st.header("Elbow Method")
 
 inertias = []
