@@ -226,18 +226,6 @@ ax_elbow.set_ylabel('Sum of Squared Distances')
 ax_elbow.set_title('Elbow Method')
 st.pyplot(fig_elbow)
 
-st.header("Flight Delay Trends")
-
-
-monthly_max = df_training.loc[df_training.groupby('MONTH')['ARR_DELAY'].idxmax()][['MONTH', 'ARR_DELAY', 'AIRLINE']]
-monthly_max['ARR_DELAY'] = monthly_max['ARR_DELAY'].astype(int)
-monthly_max.rename(columns={'ARR_DELAY': 'Longest Delay (mins)'}, inplace=True)
-
-st.subheader("Longest Delay by Month and Airline")
-monthly_max = monthly_max.reset_index(drop=True)
-styled_table = monthly_max.style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'})
-st.write(styled_table.hide(axis='index').to_html(), unsafe_allow_html=True)
-
 
 flight_counts = df_training['AIRLINE'].value_counts()
 top_airlines = flight_counts.head(10).index
