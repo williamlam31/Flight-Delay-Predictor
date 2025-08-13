@@ -22,3 +22,4 @@ Streamlit Link
 Streamlit Navigation
 
 * After inputting the values and clicking "Predict Flight Status" a response will pop up indicated if the flight will be delay
+* The Table at the bottom shows the top 10 airlines and the percentage of flights that were delayed
