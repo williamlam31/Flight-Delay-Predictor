@@ -154,7 +154,7 @@ for name, model in models.items():
 report_df = pd.DataFrame(report_rows).sort_values('Accuracy', ascending=False).reset_index(drop=True)
 
 
-st.subheader("Classification Report (Weighted Averages)")
+st.subheader("Classification Report")
 st.write(
     report_df.style.format({
         'Accuracy': '{:.3f}',
