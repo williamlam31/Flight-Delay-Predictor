@@ -190,7 +190,7 @@ st.pyplot(fig_bar)
 
 st.header("Elbow Method")
 
-k_range = range(2, 14)
+ks = range(2, 14)
 inertias = []
 for k in ks:
     km = KMeans(n_clusters=k, n_init=10, random_state=42)
