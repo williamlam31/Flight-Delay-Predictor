@@ -187,9 +187,9 @@ ax_bar.set_title('Model vs. Weighted Avg (Test Set)')
 ax_bar.legend()
 st.pyplot(fig_bar)
 
-st.markdown("---")
 
-st.header("5-Fold Cross-Validation (Training Set)")
+
+st.header("5-Fold Cross-Validation")
 cv_scores = []
 for name, model in models.items():
     X_cv = X_train_scaled.toarray() if (name == 'Naive Bayes' and hasattr(X_train_scaled, 'toarray')) else X_train_scaled
@@ -203,7 +203,7 @@ fig_cv, ax_cv = plt.subplots(figsize=(8, 4))
 ax_cv.bar(cv_df['Model'], cv_df['CV_Accuracy'])
 ax_cv.set_ylim(0, 1.05)
 ax_cv.set_ylabel('Mean Accuracy (CV=5)')
-ax_cv.set_title('5-Fold Cross-Validation (Training Set)')
+ax_cv.set_title('5-Fold Cross-Validation')
 plt.setp(ax_cv.get_xticklabels(), rotation=20, ha='right')
 st.pyplot(fig_cv)
 
