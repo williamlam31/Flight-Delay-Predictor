@@ -208,9 +208,7 @@ plt.setp(ax_cv.get_xticklabels(), rotation=20, ha='right')
 st.pyplot(fig_cv)
 
 
-st.header("Elbow Method (K-Means on Training Features)")
-k_min = st.number_input("Min k", min_value=2, max_value=3000, value=2, step=1)
-k_max = st.number_input("Max k", min_value=k_min, max_value=3000, value=max(k_min+8, 10), step=1)
+st.header("Elbow Method")
 
 ks = list(range(int(k_min), int(k_max)+1))
 inertias = []
