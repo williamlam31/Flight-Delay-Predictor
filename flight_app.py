@@ -123,9 +123,6 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
     except Exception as e:
         st.error(f"Error making prediction: {str(e)}")
 
-st.markdown("---")
-
-st.header("Model Evaluation (Test Set)")
 
 report_rows = []
 metrics_for_bars = []
@@ -190,28 +187,6 @@ ax_bar.set_title('Model vs. Weighted Avg (Test Set)')
 ax_bar.legend()
 st.pyplot(fig_bar)
 
-st.markdown("---")
-
-
-st.header("5-Fold Cross-Validation (Training Set)")
-cv_scores = []
-for name, model in models.items():
-    X_cv = X_train_scaled.toarray() if (name == 'Naive Bayes' and hasattr(X_train_scaled, 'toarray')) else X_train_scaled
-    scores = cross_val_score(model, X_cv, y_train, cv=5, scoring='accuracy')
-    cv_scores.append({'Model': name, 'CV_Accuracy': float(np.mean(scores))})
-
-cv_df = pd.DataFrame(cv_scores).sort_values('CV_Accuracy', ascending=False).reset_index(drop=True)
-st.write(cv_df.style.format({'CV_Accuracy': '{:.3f}'}).hide(axis='index').to_html(), unsafe_allow_html=True)
-
-fig_cv, ax_cv = plt.subplots(figsize=(8, 4))
-ax_cv.bar(cv_df['Model'], cv_df['CV_Accuracy'])
-ax_cv.set_ylim(0, 1.05)
-ax_cv.set_ylabel('Mean Accuracy (CV=5)')
-ax_cv.set_title('5-Fold Cross-Validation (Training Set)')
-plt.setp(ax_cv.get_xticklabels(), rotation=20, ha='right')
-st.pyplot(fig_cv)
-
-st.markdown("---")
 
 st.header("Elbow Method (K-Means on Training Features)")
 k_min = st.number_input("Min k", min_value=2, max_value=3000, value=2, step=1)
