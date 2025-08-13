@@ -21,6 +21,7 @@ warnings.filterwarnings('ignore')
 st.title("Flight Delay Predictor")
 st.write("This application predicts if your flight will be delayed based on selected factors.")
 
+
 @st.cache_data
 def load_kaggle_data():
     import kagglehub
@@ -59,11 +60,9 @@ def train_models():
     X = pd.get_dummies(X, columns=['MONTH', 'AIRLINE', 'DEST'], drop_first=True)
     y = df['FLIGHT_STATUS']
 
-  
+
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.30, random_state=42, stratify=y
-    )
-
 
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
@@ -80,15 +79,17 @@ def train_models():
 
     trained_models = {}
     for name, model in models.items():
-
+        
         X_fit = X_train_scaled.toarray() if (name == 'Naive Bayes' and hasattr(X_train_scaled, 'toarray')) else X_train_scaled
         model.fit(X_fit, y_train)
         trained_models[name] = model
+
 
     return trained_models, scaler, X.columns.tolist(), df, X_test_scaled, y_test, X_train_scaled, y_train
 
 
 models, scaler, feature_names, df_training, X_test_scaled, y_test, X_train_scaled, y_train = train_models()
+
 
 st.header("Flight Delay Prediction")
 
@@ -124,6 +125,7 @@ if st.button("Predict Flight Status with ALL Models", type="primary", use_contai
         st.error(f"Error making prediction: {str(e)}")
 
 
+
 report_rows = []
 metrics_for_bars = []
 
@@ -150,8 +152,7 @@ for name, model in models.items():
 
 report_df = pd.DataFrame(report_rows).sort_values('Accuracy', ascending=False).reset_index(drop=True)
 
-
-st.subheader("Classification Report")
+st.subheader("Classification Report (Weighted Averages)")
 st.write(
     report_df.style.format({
         'Accuracy': '{:.3f}',
@@ -161,7 +162,6 @@ st.write(
     }).hide(axis='index').to_html(),
     unsafe_allow_html=True
 )
-
 
 st.subheader("Model vs. Weighted Avg Metrics")
 bar_df = pd.DataFrame(metrics_for_bars)
@@ -187,6 +187,26 @@ ax_bar.set_title('Model vs. Weighted Avg (Test Set)')
 ax_bar.legend()
 st.pyplot(fig_bar)
 
+st.markdown("---")
+
+st.header("5-Fold Cross-Validation (Training Set)")
+cv_scores = []
+for name, model in models.items():
+    X_cv = X_train_scaled.toarray() if (name == 'Naive Bayes' and hasattr(X_train_scaled, 'toarray')) else X_train_scaled
+    scores = cross_val_score(model, X_cv, y_train, cv=5, scoring='accuracy')
+    cv_scores.append({'Model': name, 'CV_Accuracy': float(np.mean(scores))})
+
+cv_df = pd.DataFrame(cv_scores).sort_values('CV_Accuracy', ascending=False).reset_index(drop=True)
+st.write(cv_df.style.format({'CV_Accuracy': '{:.3f}'}).hide(axis='index').to_html(), unsafe_allow_html=True)
+
+fig_cv, ax_cv = plt.subplots(figsize=(8, 4))
+ax_cv.bar(cv_df['Model'], cv_df['CV_Accuracy'])
+ax_cv.set_ylim(0, 1.05)
+ax_cv.set_ylabel('Mean Accuracy (CV=5)')
+ax_cv.set_title('5-Fold Cross-Validation (Training Set)')
+plt.setp(ax_cv.get_xticklabels(), rotation=20, ha='right')
+st.pyplot(fig_cv)
+
 
 st.header("Elbow Method (K-Means on Training Features)")
 k_min = st.number_input("Min k", min_value=2, max_value=3000, value=2, step=1)
@@ -206,9 +226,6 @@ ax_elbow.set_ylabel('Sum of Squared Distances')
 ax_elbow.set_title('Elbow Method')
 st.pyplot(fig_elbow)
 
-st.markdown("---")
-
-
 st.header("Flight Delay Trends")
 
 
@@ -221,7 +238,7 @@ monthly_max = monthly_max.reset_index(drop=True)
 styled_table = monthly_max.style.set_properties(subset=['MONTH', 'Longest Delay (mins)'], **{'text-align': 'center'})
 st.write(styled_table.hide(axis='index').to_html(), unsafe_allow_html=True)
 
-# Plotly bar + line combo for airlines
+
 flight_counts = df_training['AIRLINE'].value_counts()
 top_airlines = flight_counts.head(10).index
 filtered_df = df_training[df_training['AIRLINE'].isin(top_airlines)]
